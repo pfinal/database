@@ -1,0 +1,22 @@
+{
+  "name": "pfinal/database",
+  "description": "PHP MySQL database wrapper, extends PDO and PDOStatement",
+  "license": "MIT",
+  "homepage": "http://www.pfinal.cn",
+  "authors": [
+    {
+      "name": "Zou Yiliang"
+    }
+  ],
+  "require": {
+    "php": ">=5.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "PFinal\\Database\\": "src/"
+    }
+  }
+}
