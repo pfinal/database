@@ -79,17 +79,48 @@ class ActiveRecord extends Builder
      */
     public function save()
     {
+        $pkField = self::getAutoIncrementField();
+
         if ($this->isNewRecord()) {
             if (($id = $this->insertGetId((array)$this)) > 0) {
-                $this->id = $id;//todo pk
+
+                $this->$pkField = $id;
                 return true;
             }
             return false;
         } else {
 
-            $pk = static::$modelStorage->offsetGet($this);
+            $original = unserialize(static::$modelStorage->offsetGet($this));
 
-            return 1 == $this->where('id=?', array($pk))->update((array)$this);//todo pk
+            return 1 == $this->where($pkField . '=?', array($original[$pkField]))->update((array)$this);
         }
+    }
+
+
+    /**
+     * 查询自增字段
+     * @return string | null
+     */
+    private function getAutoIncrementField()
+    {
+        foreach (static::schema($this->table) as $field) {
+            if (stripos($field['Extra'], 'auto_increment') !== false) {
+                return (string)$field['Field'];
+            }
+        }
+    }
+
+    private static $schemas = array();
+
+    /**
+     * @param string $tableName
+     * @return array
+     */
+    private function schema($tableName)
+    {
+        if (!array_key_exists($tableName, static::$schemas)) {
+            static::$schemas[$tableName] = static::getConnection()->query('SHOW FULL FIELDS FROM ' . $tableName);
+        }
+        return static::$schemas[$tableName];
     }
 }
