@@ -9,7 +9,7 @@ class EntityManager extends Builder
      */
     public static $modelStorage;
 
-    public function __construct(array $config)
+    public function __construct(array $config = array())
     {
         parent::__construct($config);
 
