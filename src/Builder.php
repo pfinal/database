@@ -208,7 +208,7 @@ class Builder
     public function findByPk($pk, $primaryKeyField = 'id')
     {
         static::checkColumnName($primaryKeyField);
-        $this->where('[[' . $primaryKeyField . ']]=?', [$pk]);
+        $this->where(array($primaryKeyField => $pk));
         $this->limit = 1;
         return $this->findOne();
     }
