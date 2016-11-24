@@ -79,13 +79,15 @@ class Builder
      * @return static
      * @throws Exception
      */
-    public function table($tableName)
+    public function table($tableName = '')
     {
-        if (strpos($tableName, '{{') === false) {
-            $tableName = '{{%' . $tableName . '}}';
-        }
-        if (!preg_match('/^\{\{%?[\w\-\.\$]+%?\}\}$/', $tableName)) {
-            throw new Exception('表名错误');
+        if (!empty($tableName)) {
+            if (strpos($tableName, '{{') === false) {
+                $tableName = '{{%' . $tableName . '}}';
+            }
+            if (!preg_match('/^\{\{%?[\w\-\.\$]+%?\}\}$/', $tableName)) {
+                throw new Exception('表名错误');
+            }
         }
         $this->table = $tableName;
         return $this;
