@@ -222,7 +222,7 @@ class Connection
             $statement->execute($params);
             $this->logQuery($sql, $params, $this->getElapsedTime($start));
             $data = $statement->fetch(PDO::FETCH_NUM);
-            if (is_array($data) && isset($data[0])) {
+            if (is_array($data) && count($data) > 0) {
                 return $data[0];
             }
             throw new Exception(__CLASS__ . '::queryScalar() fetch result set error.');
