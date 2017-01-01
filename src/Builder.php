@@ -146,7 +146,6 @@ class Builder
             $fetchModel = array(\PDO::FETCH_ASSOC);
         } else {
             $fetchModel = array(\PDO::FETCH_CLASS, $fetchClass);
-
         }
 
         return static::getConnection()->query($sql, $params, $fetchModel, !$useWritePdo);
