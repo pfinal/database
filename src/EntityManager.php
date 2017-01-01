@@ -98,14 +98,12 @@ class EntityManager extends Builder
     {
         $models = parent::findAllBySql($sql, $params);
 
-        if ($this->fetchClass === null) {
-            return $models;
-        } else {
-            array_walk($models, function (&$model) {
+        array_walk($models, function (&$model) {
+            if (is_object($model)) {
                 static::$modelStorage->attach($model, serialize((array)$model));
-            });
-            return $models;
-        }
+            }
+        });
+        return $models;
     }
 
     private function getPkWhere(array $attributes)
