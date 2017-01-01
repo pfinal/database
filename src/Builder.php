@@ -670,6 +670,7 @@ class Builder
 
     /**
      * 在查询操作中，默认使用从库，调用此方法后，将强制使用主库做查询
+     *
      * @return $this
      */
     public function useWritePdo()
