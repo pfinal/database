@@ -94,11 +94,11 @@ class EntityManager extends Builder
         return !static::$modelStorage->contains($entity);
     }
 
-    public function findAllBySql($sql = '', $params = array(), $fetchClass = null)
+    public function findAllBySql($sql = '', $params = array())
     {
-        $models = parent::findAllBySql($sql, $params, $fetchClass);
+        $models = parent::findAllBySql($sql, $params);
 
-        if ($fetchClass === null) {
+        if ($this->fetchClass === null) {
             return $models;
         } else {
             array_walk($models, function (&$model) {
@@ -185,5 +185,4 @@ class EntityManager extends Builder
         }
         return $entity;
     }
-
 }

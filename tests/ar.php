@@ -17,7 +17,7 @@ $config = [
 
 $db = new \PFinal\Database\Connection($config);
 
-$user = User::find($db)->where(['id' => 2])->one();
+$user = User::find($db)->where(['id' => 3])->one();
 
 var_dump((array)$user->isNewRecord());
 var_dump($user);

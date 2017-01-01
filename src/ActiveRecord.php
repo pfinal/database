@@ -53,13 +53,13 @@ class ActiveRecord extends Builder
      */
     protected static $modelStorage = null;
 
-    public function findAllBySql($sql = '', $params = array(), $fetchClass = null)
+    public function findAllBySql($sql = '', $params = array())
     {
-        if ($fetchClass === null) {
-            return parent::findAllBySql($sql, $params, $fetchClass);
+        if ($this->fetchClass === null) {
+            return parent::findAllBySql($sql, $params);
         } else {
 
-            $models = parent::findAllBySql($sql, $params, $fetchClass);
+            $models = parent::findAllBySql($sql, $params);
 
             array_walk($models, function (&$model) {
                 static::$modelStorage->attach($model, serialize((array)$model));
