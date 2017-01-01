@@ -176,30 +176,31 @@ class Connection
      * 执行SQL语句，返回array (查询类型的SQL)
      * @param string $sql
      * @param array $params
-     * @param int $fetchStyle 从此参数开始，为setFetchMode的参数，例如为PDO::FETCH_CLASS，则可以传入第4个参数($classname)
+     * @param array $fetchMode 为PDOStatement::setFetchMode的参数，例如为 PDO::FETCH_ASSOC 或 [PDO::FETCH_CLASS, 'User']
+     * @param bool $useReadPdo 是否使用从库查询
      * @return array
      * @throws Exception
      */
-    public function query($sql, $params = array(), $fetchStyle = PDO::FETCH_ASSOC)
+    public function query($sql, $params = array(), $fetchMode = array(PDO::FETCH_ASSOC), $useReadPdo = true)
     {
         $sql = $this->quoteSql($sql);
         try {
-            $statement = $this->getReadPdo()->prepare($sql);
+
+            if ($useReadPdo) {
+                $statement = $this->getReadPdo()->prepare($sql);
+            } else {
+                $statement = $this->getPdo()->prepare($sql);
+            }
 
             $start = microtime(true);
             $statement->execute($params);
             $this->logQuery($sql, $params, $this->getElapsedTime($start));
 
-            $args = func_get_args();
-            $args = array_slice($args, 2);
-
-            $args[0] = $fetchStyle;
-
-            //PDOStatement::setFetchMode ( int $mode )
-            //PDOStatement::setFetchMode ( int $PDO::FETCH_COLUMN , int $colno )
-            //PDOStatement::setFetchMode ( int $PDO::FETCH_CLASS , string $classname , array $ctorargs )
-            //PDOStatement::setFetchMode ( int $PDO::FETCH_INTO , object $object )
-            call_user_func_array(array($statement, 'setFetchMode'), $args);
+            //PDOStatement::setFetchMode(int $mode)
+            //PDOStatement::setFetchMode(int $PDO::FETCH_COLUMN, int $colno)
+            //PDOStatement::setFetchMode(int $PDO::FETCH_CLASS, string $classname, array $ctorargs)
+            //PDOStatement::setFetchMode(int $PDO::FETCH_INTO, object $object)
+            call_user_func_array(array($statement, 'setFetchMode'), $fetchMode);
             return $statement->fetchAll();
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage());
@@ -210,14 +211,19 @@ class Connection
      * 执行查询统计类型语句, 返回具体单个值, 常用于COUNT、AVG、MAX、MIN、SUM
      * @param $sql
      * @param array $params
+     * @param bool $useReadPdo 是否使用从库查询
      * @return mixed
      * @throws Exception
      */
-    public function queryScalar($sql, $params = array())
+    public function queryScalar($sql, $params = array(), $useReadPdo = true)
     {
         $sql = $this->quoteSql($sql);
         try {
-            $statement = $this->getReadPdo()->prepare($sql);
+            if ($useReadPdo) {
+                $statement = $this->getReadPdo()->prepare($sql);
+            } else {
+                $statement = $this->getPdo()->prepare($sql);
+            }
             $start = microtime(true);
             $statement->execute($params);
             $this->logQuery($sql, $params, $this->getElapsedTime($start));
@@ -225,7 +231,7 @@ class Connection
             if (is_array($data) && count($data) > 0) {
                 return $data[0];
             }
-            throw new Exception(__CLASS__ . '::queryScalar() fetch result set error.');
+            throw new Exception(__CLASS__ . '::queryScalar() fetch result error.');
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage());
         }

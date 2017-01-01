@@ -30,6 +30,7 @@ class Builder
     protected $params = array();
     protected $fetchClass;
     protected $lockForUpdate;
+    protected $useWritePdo = false;
 
     /**
      * 自动生成查询绑定参数前缀
@@ -140,9 +141,9 @@ class Builder
         $this->reset();
 
         if ($fetchClass === null) {
-            return static::getConnection()->query($sql, $params, \PDO::FETCH_ASSOC);
+            return static::getConnection()->query($sql, $params, \PDO::FETCH_ASSOC, !$this->useWritePdo);
         } else {
-            return static::getConnection()->query($sql, $params, \PDO::FETCH_CLASS, $fetchClass);
+            return static::getConnection()->query($sql, $params, array(\PDO::FETCH_CLASS, $fetchClass), !$this->useWritePdo);
         }
     }
 
@@ -327,7 +328,7 @@ class Builder
         $sql = 'SELECT ' . $method . '(' . $field . ') FROM ' . $this->table . $this->getWhereString();
         $sql = static::replacePlaceholder($sql);
         $sql = static::appendLock($sql);
-        $result = static::getConnection()->queryScalar($sql, $this->params);
+        $result = static::getConnection()->queryScalar($sql, $this->params, !$this->useWritePdo);
         $this->reset();
         return $result;
     }
@@ -453,6 +454,7 @@ class Builder
     public function lockForUpdate()
     {
         $this->lockForUpdate = true;
+        $this->useWritePdo();
         return $this;
     }
 
@@ -667,6 +669,16 @@ class Builder
     }
 
     /**
+     * 在查询操作中，默认使用从库，调用此方法后，将强制使用主库做查询
+     * @return $this
+     */
+    public function useWritePdo()
+    {
+        $this->useWritePdo = true;
+        return $this;
+    }
+
+    /**
      * 清空所有条件
      */
     protected function reset()
@@ -679,6 +691,7 @@ class Builder
         $this->offset = null;
         $this->condition = null;
         $this->params = array();
-        $this->lockForUpdate = null;
+        $this->lockForUpdate = false;
+        $this->useWritePdo = null;
     }
 }
