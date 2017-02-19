@@ -305,11 +305,16 @@ class Builder
 
     /**
      * 分页
+     * @param int $pageSize 每页数据条数
      * @return DataProvider
      */
-    public function paginate()
+    public function paginate($pageSize = null)
     {
-        return new DataProvider($this);
+        $pageConfig = array();
+        if ($pageSize !== null) {
+            $pageConfig['pageSize'] = $pageSize;
+        }
+        return new DataProvider($this, $pageConfig);
     }
 
     /**

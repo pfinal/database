@@ -17,12 +17,15 @@ class DataProvider implements \JsonSerializable, \ArrayAccess, \Iterator
 
     private $data;
 
+    private $pageConfig = array();
+
     /**
      * @param \PFinal\Database\Builder $query
      */
-    public function __construct($query)
+    public function __construct($query, array $pageConfig = array())
     {
         $this->query = $query;
+        $this->pageConfig = $pageConfig;
     }
 
     /**
@@ -42,6 +45,8 @@ class DataProvider implements \JsonSerializable, \ArrayAccess, \Iterator
         if ($this->page === null) {
 
             $this->page = Application::$app->make('Leaf\\Pagination');
+
+            $this->page->config($this->pageConfig);
 
             $countQuery = clone $this->query;
             $this->page->itemCount = $countQuery->count();
