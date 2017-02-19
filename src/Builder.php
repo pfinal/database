@@ -304,6 +304,15 @@ class Builder
     }
 
     /**
+     * 分页
+     * @return DataProvider
+     */
+    public function paginate()
+    {
+        return new DataProvider($this);
+    }
+
+    /**
      * 统计查询 count()、sum()、max()、min()、avg()
      *
      * @param $method
