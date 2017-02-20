@@ -200,7 +200,7 @@ class Connection
             //PDOStatement::setFetchMode(int $PDO::FETCH_COLUMN, int $colno)
             //PDOStatement::setFetchMode(int $PDO::FETCH_CLASS, string $classname, array $ctorargs)
             //PDOStatement::setFetchMode(int $PDO::FETCH_INTO, object $object)
-            call_user_func_array(array($statement, 'setFetchMode'), $fetchMode);
+            call_user_func_array(array($statement, 'setFetchMode'), (array)$fetchMode);
             return $statement->fetchAll();
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage());
