@@ -20,7 +20,10 @@ class Connection
     protected $queryLog = array();
 
     protected $config = array(
-        'dsn' => 'mysql:host=localhost;dbname=test',
+        //'dsn' => 'mysql:host=localhost;dbname=test',
+        'host' => 'localhost',
+        'database' => 'test',
+
         'username' => 'root',
         'password' => '',
         'charset' => 'utf8',
@@ -70,8 +73,14 @@ class Connection
 
     protected function makePdo(array $config)
     {
+        if (isset($config['dsn'])) {
+            $dsn = $config['dsn'];
+        } else {
+            $dsn = 'mysql:host=' . $config['host'] . ';dbname=' . $config['database'];
+        }
+
         try {
-            $pdo = new PDO($config['dsn'], $config['username'], $config['password'], $config['options']);
+            $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
             $pdo->exec('SET NAMES ' . $pdo->quote($config['charset']));
             return $pdo;
         } catch (PDOException $ex) {
