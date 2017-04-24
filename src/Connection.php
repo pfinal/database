@@ -71,6 +71,16 @@ class Connection
         return $this->pdo;
     }
 
+    public function setPdo(\PDO $pdo)
+    {
+        $this->pdo = $pdo;
+    }
+
+    public function setReadPdo(\PDO $pdo)
+    {
+        $this->readPdo = $pdo;
+    }
+
     protected function makePdo(array $config)
     {
         if (isset($config['dsn'])) {
