@@ -20,9 +20,9 @@ class Connection
     protected $queryLog = array();
 
     protected $config = array(
-        //'dsn' => 'mysql:host=localhost;dbname=test',
-        'host' => 'localhost',
-        'database' => 'test',
+        'dsn' => 'mysql:host=localhost;dbname=test',
+        //'host' => 'localhost',
+        //'database' => 'test',
 
         'username' => 'root',
         'password' => '',
@@ -135,7 +135,9 @@ class Connection
         } while (count($slaveDbConfig) > 0);
 
         // 使用主库
-        return $this->readPdo = $this->getPdo();
+        //return $this->readPdo = $this->getPdo();
+
+        throw $ex;
     }
 
     /**
