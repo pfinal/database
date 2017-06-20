@@ -247,18 +247,32 @@ class Builder
     }
 
     /**
-     * 自增。如果自减,传入负数即可
+     * 自增 如果自减,传入负数即可
+     *
      * @param string $field 字段
      * @param int $value 自增值,默认自增1
+     * @param array $data 同时更新的其它字段值
      * @return int 回受影响行数
      */
-    public function increment($field, $value = 1, $condition = '', $params = array())
+    public function increment($field, $value = 1, $data = array())
     {
         static::checkColumnName($field);
-        $this->where($condition, $params);
 
-        $sql = 'UPDATE ' . $this->table . ' SET [[' . $field . ']] = [[' . $field . ']] + (' . intval($value) . ')' . $this->getWhereString();
+        $updatePlaceholders = [];
+        foreach ($data as $name => $value) {
+            static::checkColumnName($name);
+            $updatePlaceholders[] = "[[$name]]" . ' = ' . self::PARAM_PREFIX . $name;
+            $this->params[self::PARAM_PREFIX . $name] = $value;
+        }
+
+        $updateStr = '';
+        if (count($updatePlaceholders) > 0) {
+            $updateStr = ', ' . implode(', ', $updatePlaceholders);
+        }
+
+        $sql = 'UPDATE ' . $this->table . ' SET [[' . $field . ']] = [[' . $field . ']] + (' . intval($value) . ')' . $updateStr . $this->getWhereString();
         $sql = static::replacePlaceholder($sql);
+
         $rowCount = static::getConnection()->execute($sql, $this->params);
         $this->reset();
         return $rowCount;

@@ -13,6 +13,8 @@ $config = [
 $db = new \PFinal\Database\Builder($config);
 $db->getConnection()->enableQueryLog();
 
+$db->table('test')->where('id=?', [44])->increment('aa', 1, ['bb' => 6]);
+
 $id = $db->table('test')->insertGetId(['username' => 134, 'status' => '0']);
 
 $count = $db->table('test')->lockForUpdate()->count('id');
