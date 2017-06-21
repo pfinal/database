@@ -259,10 +259,10 @@ class Builder
         static::checkColumnName($field);
 
         $updatePlaceholders = [];
-        foreach ($data as $name => $value) {
+        foreach ($data as $name => $val) {
             static::checkColumnName($name);
             $updatePlaceholders[] = "[[$name]]" . ' = ' . self::PARAM_PREFIX . $name;
-            $this->params[self::PARAM_PREFIX . $name] = $value;
+            $this->params[self::PARAM_PREFIX . $name] = $val;
         }
 
         $updateStr = '';
