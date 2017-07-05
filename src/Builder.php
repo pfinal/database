@@ -214,7 +214,6 @@ class Builder
      */
     public function findByPk($pk, $primaryKeyField = 'id')
     {
-        static::checkColumnName($primaryKeyField);
         $this->where(array($primaryKeyField => $pk));
         $this->limit = 1;
         return $this->findOne();
@@ -423,7 +422,7 @@ class Builder
         $params = (array)$params; //防止传入单个值时未使用数组类型
 
         if (is_array($condition)) {
-            return $this->whereWithArray($condition, 'AND', $andWhere);
+            return $this->whereWithArray($condition, true, $andWhere);
         }
 
         if (empty($this->condition)) {
