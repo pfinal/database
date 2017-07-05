@@ -269,8 +269,8 @@ class Builder
             $updateStr = ', ' . implode(', ', $updatePlaceholders);
         }
 
-        $sql = 'UPDATE ' . $this->table . ' SET [[' . $field . ']] = [[' . $field . ']] + ?' . $updateStr . $this->getWhereString();
-        $this->params[] = $value;
+        $sql = 'UPDATE ' . $this->table . ' SET [[' . $field . ']] = [[' . $field . ']] + ' . self::PARAM_PREFIX . '_increment' . $updateStr . $this->getWhereString();
+        $this->params[self::PARAM_PREFIX . '_increment'] = $value;
 
         $sql = static::replacePlaceholder($sql);
 
