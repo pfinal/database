@@ -247,10 +247,10 @@ class Builder
     }
 
     /**
-     * 自增 如果自减,传入负数即可
+     * 自增 (如果自减,传入负数即可)
      *
      * @param string $field 字段
-     * @param int $value 自增值,默认自增1
+     * @param int|float $value 自增值,默认自增1
      * @param array $data 同时更新的其它字段值
      * @return int 回受影响行数
      */
@@ -270,7 +270,9 @@ class Builder
             $updateStr = ', ' . implode(', ', $updatePlaceholders);
         }
 
-        $sql = 'UPDATE ' . $this->table . ' SET [[' . $field . ']] = [[' . $field . ']] + (' . intval($value) . ')' . $updateStr . $this->getWhereString();
+        $sql = 'UPDATE ' . $this->table . ' SET [[' . $field . ']] = [[' . $field . ']] + ?' . $updateStr . $this->getWhereString();
+        $this->params[] = $value;
+
         $sql = static::replacePlaceholder($sql);
 
         $rowCount = static::getConnection()->execute($sql, $this->params);
@@ -393,6 +395,8 @@ class Builder
     }
 
     /**
+     * 排序
+     *
      * @param array|string $columns
      * @return $this
      */
@@ -416,6 +420,8 @@ class Builder
             return $this;
         }
 
+        $params = (array)$params; //防止传入单个值时未使用数组类型
+
         if (is_array($condition)) {
             return $this->whereWithArray($condition, 'AND', $andWhere);
         }
@@ -432,26 +438,36 @@ class Builder
     }
 
     /**
+     * 主键作为条件
+     *
+     * @param int $pk 主键的值
+     * @param string $primaryKeyField 主键字段名，默认为id
+     * @return static
+     */
+    public function wherePk($pk, $primaryKeyField = 'id')
+    {
+        return $this->where(array($primaryKeyField => $pk));
+    }
+
+    /**
      * 设置条件(IN查询) 例如 `whereIn('id', [1, 2, 3])`
      *
      * @param string $field 字段
      * @param array $values 条件值, 索引数组
      * @param bool $andWhere 对应where()方法条三个参数
      * @return $this
-     * @throws Exception
      */
     public function whereIn($field, array $values, $andWhere = true)
     {
         self::checkColumnName($field);
 
-        //in条件为空时，无法确定作为无条件处理(返回全部数据)，还是不匹配任一记录
         if (count($values) == 0) {
-            throw new Exception(__CLASS__ . '::whereIn() 第二个参数不能为空数组');
+            //in条件为空， 给一个值为false的条件，避免查询到任何结果
+            return $this->where('1 != 1');
         }
 
         $values = array_values($values);
-        $this->where('[[' . $field . ']] IN (' . rtrim(str_repeat('?,', count($values)), ',') . ')', $values, $andWhere);
-        return $this;
+        return $this->where('[[' . $field . ']] IN (' . rtrim(str_repeat('?,', count($values)), ',') . ')', $values, $andWhere);
     }
 
     /**

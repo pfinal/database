@@ -43,12 +43,6 @@ class EntityManager extends Builder
      */
     public function save($entity)
     {
-        if (method_exists($entity, 'beforeSave')) {
-            if (!call_user_func(array($entity, 'beforeSave'))) {
-                return false;
-            }
-        }
-
         if ($this->isNewRecord($entity)) {
 
             //$entity->created_at = $entity->updated_at = time();
