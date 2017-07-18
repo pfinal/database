@@ -8,7 +8,7 @@ use Leaf\Pagination;
 /**
  * 数据提供者
  */
-class DataProvider implements \JsonSerializable, \ArrayAccess, \Iterator
+class DataProvider implements \JsonSerializable, \ArrayAccess, \Iterator, \Countable
 {
     /** @var  $page Pagination */
     protected $page;
@@ -137,5 +137,11 @@ class DataProvider implements \JsonSerializable, \ArrayAccess, \Iterator
     public function rewind()
     {
         $this->position = 0;
+    }
+
+    public function count()
+    {
+        $this->fillData();
+        return count($this->data);
     }
 }

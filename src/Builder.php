@@ -95,6 +95,24 @@ class Builder
     }
 
     /**
+     * 添加表前缀
+     *
+     * @param $tableName
+     * @return string
+     * @throws Exception
+     */
+    public function addPrefix($tableName)
+    {
+        if (strpos($tableName, '{{') === false) {
+            $tableName = '{{%' . $tableName . '}}';
+        }
+        if (!preg_match('/^\{\{%?[\w\-\.\$]+%?\}\}$/', $tableName)) {
+            throw new Exception('表名错误');
+        }
+        return $tableName;
+    }
+
+    /**
      * 执行新增,返回受影响行数
      * @param array $data
      * @return bool
@@ -131,7 +149,8 @@ class Builder
      *
      * @param string $sql
      * @param array $params
-     * @return array|object[]
+     * @return array|\object[]
+     * @throws \Exception
      */
     public function findAllBySql($sql = '', $params = array())
     {
@@ -148,7 +167,16 @@ class Builder
             $fetchModel = array(\PDO::FETCH_CLASS, $fetchClass);
         }
 
-        return static::getConnection()->query($sql, $params, $fetchModel, !$useWritePdo);
+        if ($this->afterFind === null) {
+            return static::getConnection()->query($sql, $params, $fetchModel, !$useWritePdo);
+        }
+
+        $models = static::getConnection()->query($sql, $params, $fetchModel, !$useWritePdo);
+        if (array_walk($models, $this->afterFind)) {
+            return $models;
+        } else {
+            throw new \Exception('After find error.');
+        }
     }
 
     /**
@@ -723,6 +751,25 @@ class Builder
     public function useWritePdo()
     {
         $this->useWritePdo = true;
+        return $this;
+    }
+
+    protected $afterFind;
+
+    /**
+     * 查询之后的处理函数，对每个查询得到的结果应用此函数
+     *
+     * @param $callback
+     * @return $this
+     * @throws \Exception
+     */
+    public function afterFind($callback)
+    {
+        if (!is_callable($callback)) {
+            throw new \Exception('After find must callable');
+        }
+        $this->afterFind = $callback;
+
         return $this;
     }
 
