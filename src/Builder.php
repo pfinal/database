@@ -785,5 +785,6 @@ class Builder
         $this->params = array();
         $this->lockForUpdate = false;
         $this->useWritePdo = null;
+        $this->afterFind = null;
     }
 }
