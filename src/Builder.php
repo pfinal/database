@@ -83,15 +83,12 @@ class Builder
     public function table($tableName = '')
     {
         if (!empty($tableName)) {
-            if (strpos($tableName, '{{') === false) {
-                $tableName = '{{%' . $tableName . '}}';
-            }
-            if (!preg_match('/^\{\{%?[\w\-\.\$]+%?\}\}$/', $tableName)) {
-                throw new Exception('表名错误');
-            }
+            $tableName = self::addPrefix($tableName);
         }
-        $this->table = $tableName;
-        return $this;
+
+        $builder = clone $this;
+        $builder->table = $tableName;
+        return $builder;
     }
 
     /**
