@@ -233,13 +233,13 @@ class Builder
     /**
      * 根据主键查询
      *
-     * @param int $pk 主键值，不支持复合主键
-     * @param string $primaryKeyField 主键字段,默认为`id`
+     * @param int|array $id 主键值
+     * @param string|array $primaryKeyField 主键字段
      * @return array|object|mixed|null
      */
-    public function findByPk($pk, $primaryKeyField = 'id')
+    public function findByPk($id, $primaryKeyField = null)
     {
-        $this->where(array($primaryKeyField => $pk));
+        $this->wherePk($id, $primaryKeyField);
         $this->limit = 1;
         return $this->findOne();
     }
@@ -464,13 +464,49 @@ class Builder
     /**
      * 主键作为条件
      *
-     * @param int $pk 主键的值
-     * @param string $primaryKeyField 主键字段名，默认为id
+     * @param int|array $id 主键的值
+     * @param string|array $primaryKeyField 主键字段名，如果不传，则自动获取
      * @return static
      */
-    public function wherePk($pk, $primaryKeyField = 'id')
+    public function wherePk($id, $primaryKeyField = null)
     {
-        return $this->where(array($primaryKeyField => $pk));
+        if ($primaryKeyField == null) {
+            $primaryKeyField = self::primaryKeyFields();
+        }
+
+        return $this->where(array_combine((array)$primaryKeyField, (array)$id));
+    }
+
+    /**
+     * 主键字段
+     *
+     * @return array 例如 ['id']
+     */
+    private function primaryKeyFields()
+    {
+        $fields = static::schema();
+
+        $primary = [];
+        foreach ($fields as $field) {
+            if ($field['Key'] === 'PRI') {
+                $primary[] = $field['Field'];
+            }
+        }
+
+        return $primary;
+    }
+
+    private static $schemas = array();
+
+    /**
+     * @return array
+     */
+    private function schema()
+    {
+        if (!array_key_exists($this->table, static::$schemas)) {
+            static::$schemas[$this->table] = $this->getConnection()->query('SHOW FULL FIELDS FROM ' . $this->table);
+        }
+        return static::$schemas[$this->table];
     }
 
     /**

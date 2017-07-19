@@ -131,8 +131,6 @@ class DbTest extends \PHPUnit_Framework_TestCase
         $arr = $db->table('test')->loadDefaultValues(new stdClass());
         $this->assertTrue($arr->status == 10);
 
-        $arr = $db->table('test')->loadDefaultValues('stdClass');
-        $this->assertTrue($arr->status == 10);
 
         var_dump($db->getConnection()->getQueryLog());
     }
