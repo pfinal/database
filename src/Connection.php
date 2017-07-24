@@ -233,7 +233,12 @@ class Connection
      * @param $sql
      * @param array $params
      * @param bool $useReadPdo 是否使用从库查询
-     * @return mixed
+     * @return string|null|false 返回查询结果的第一行第一列数据
+     *
+     * AVG、MAX、MIN、SUM查询时，如果表中一条数据都没有时，将返回null
+     *
+     * 没有结果时返回false
+     *
      * @throws Exception
      */
     public function queryScalar($sql, $params = array(), $useReadPdo = true)
@@ -252,7 +257,7 @@ class Connection
             if (is_array($data) && count($data) > 0) {
                 return $data[0];
             }
-            throw new Exception(__CLASS__ . '::queryScalar() fetch result error.');
+            return $data;
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage());
         }
