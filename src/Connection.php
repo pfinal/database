@@ -253,11 +253,7 @@ class Connection
             $start = microtime(true);
             $statement->execute($params);
             $this->logQuery($sql, $params, $this->getElapsedTime($start));
-            $data = $statement->fetch(PDO::FETCH_NUM);
-            if (is_array($data) && count($data) > 0) {
-                return $data[0];
-            }
-            return $data;
+            return $statement->fetchColumn(0);
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage());
         }
