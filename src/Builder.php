@@ -658,6 +658,8 @@ class Builder
                     $return[] = '[[' . $value . ']]';
                 }
                 $return = join(',', $return);
+            } else {
+                $return = $field;
             }
             if (!preg_match('/^[\w\s\.\,\[\]`\*]+$/', $return)) {
                 throw new Exception(__CLASS__ . '::field() 含有不安全的字符');//字母、数字、下划线、空白、点、星号、逗号、中括号、反引号
