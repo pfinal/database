@@ -30,6 +30,7 @@ class Builder
     protected $params = array();
     protected $fetchClass;
     protected $lockForUpdate;
+    protected $lockInShareMode;
     protected $useWritePdo = false;
 
     /**
@@ -555,7 +556,7 @@ class Builder
     }
 
     /**
-     * FOR UPDATE 在事务中有效
+     * 更新锁可避免行被其它共享锁修改或选取 (在事务中有效)
      *
      * @return $this
      */
@@ -564,6 +565,27 @@ class Builder
         $this->lockForUpdate = true;
         $this->useWritePdo();
         return $this;
+    }
+
+    /**
+     * 共享锁(sharedLock) 可防止选中的数据被篡改，直到事务被提交为止 (在事务中有效)
+     *
+     * @return $this
+     */
+    public function lockInShareMode()
+    {
+        $this->lockInShareMode = true;
+        $this->useWritePdo();
+        return $this;
+    }
+
+    /**
+     * @see lockInShareMode
+     * @return $this
+     */
+    public function sharedLock()
+    {
+        return $this->lockInShareMode();
     }
 
     /**
@@ -719,7 +741,7 @@ class Builder
     }
 
     /**
-     * lockForUpdate
+     * lock
      *
      * @param $sql
      * @return string
@@ -728,7 +750,10 @@ class Builder
     {
         if ($this->lockForUpdate === true) {
             $sql = rtrim($sql) . ' FOR UPDATE';
+        } else if ($this->lockInShareMode === true) {
+            $sql = rtrim($sql) . ' LOCK IN SHARE MODE';
         }
+
         return $sql;
     }
 
@@ -821,7 +846,8 @@ class Builder
         $this->offset = null;
         $this->condition = null;
         $this->params = array();
-        $this->lockForUpdate = false;
+        $this->lockForUpdate = null;
+        $this->lockInShareMode = null;
         $this->useWritePdo = null;
         $this->afterFind = null;
     }
