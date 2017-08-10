@@ -202,6 +202,44 @@ class Builder
     }
 
     /**
+     * 游标迭代处理数据库记录, 执行查询并返回 Generator
+     *
+     * 使用示例:
+     *
+     * foreach (DB::table('user')->where('status=1')->cursor() as $user) {
+     *      //
+     * }
+     *
+     * @return \Generator
+     */
+    public function cursor()
+    {
+        $sql = 'SELECT ' . static::getFieldString() . ' FROM ' . $this->table
+            . $this->getWhereString()
+            . $this->getOrderByString()
+            . $this->getLimitString();
+
+        $sql = static::replacePlaceholder($sql);
+
+        $params = $this->params;
+
+        $sql = static::appendLock($sql);
+
+        $useWritePdo = $this->useWritePdo;
+        $fetchClass = $this->fetchClass;
+
+        $this->reset();
+
+        if ($fetchClass === null) {
+            $fetchModel = array(\PDO::FETCH_ASSOC);
+        } else {
+            $fetchModel = array(\PDO::FETCH_CLASS, $fetchClass);
+        }
+
+        return static::getConnection()->cursor($sql, $params, $fetchModel, !$useWritePdo);
+    }
+
+    /**
      * 根据SQL返回对象
      * @param string $sql
      * @param array $params
