@@ -114,7 +114,8 @@ class Builder
     }
 
     /**
-     * 执行新增,返回受影响行数
+     * 执行新增
+     *
      * @param array $data
      * @return bool
      */
@@ -134,6 +135,7 @@ class Builder
 
     /**
      * 执行新增,返回自增ID
+     *
      * @param array $data
      * @return int
      */
@@ -146,11 +148,11 @@ class Builder
     }
 
     /**
-     * 根据SQL查询，返回符合条件的所有数据
+     * 根据SQL查询, 返回符合条件的所有数据, 没有结果时返回空数组
      *
      * @param string $sql
      * @param array $params
-     * @return array|\object[]
+     * @return array
      * @throws \Exception
      */
     public function findAllBySql($sql = '', $params = array())
@@ -181,12 +183,11 @@ class Builder
     }
 
     /**
-     *
-     * 返回符合条件的所有数据
+     * 返回符合条件的所有数据, 没有结果时返回空数组
      *
      * @param string $condition
      * @param array $params
-     * @return array|object[]
+     * @return array
      */
     public function findAll($condition = '', $params = array())
     {
@@ -240,10 +241,11 @@ class Builder
     }
 
     /**
-     * 根据SQL返回对象
+     * 根据SQL返回对象, 没有结果时返回null
+     *
      * @param string $sql
      * @param array $params
-     * @return array|object|null
+     * @return mixed
      */
     public function findOneBySql($sql = '', $params = array())
     {
@@ -255,12 +257,11 @@ class Builder
     }
 
     /**
-     *
-     * 返回符合条件的单条数据
+     * 返回符合条件的单条数据, 没有结果时返回null
      *
      * @param string $condition
      * @param array $params
-     * @return array|object|null
+     * @return mixed
      */
     public function findOne($condition = '', $params = array())
     {
@@ -273,11 +274,11 @@ class Builder
     }
 
     /**
-     * 根据主键查询
+     * 根据主键查询, 没有结果时返回null
      *
      * @param int|array $id 主键值
      * @param string|array $primaryKeyField 主键字段
-     * @return array|object|mixed|null
+     * @return mixed
      */
     public function findByPk($id, $primaryKeyField = null)
     {
@@ -287,7 +288,23 @@ class Builder
     }
 
     /**
+     * 根据主键查询，没有记录时，抛出异常
+     *
+     * @see findByPk
+     * @throws NotFoundException
+     */
+    public function findByPkOrFail($id, $primaryKeyField = null)
+    {
+        $data = static::findByPk($id, $primaryKeyField);
+        if ($data == null) {
+            throw new NotFoundException();
+        }
+        return $data;
+    }
+
+    /**
      * 执行更新操作，返回受影响行数
+     *
      * @param array $data 需要更新的数据, 关联数组,key为字段名,value为对应的值, 字段名只允许字母、数字或下划线
      * @param string $condition
      * @param array $params
@@ -367,6 +384,7 @@ class Builder
 
     /**
      * 加载数据库字段默认值
+     *
      * @param null $entity 对象，如果为空，此方法返回数组
      * @return array|object
      */
@@ -386,7 +404,8 @@ class Builder
     }
 
     /**
-     * 分页
+     * 分页获取数据
+     *
      * @param int $pageSize 每页数据条数
      * @return DataProvider
      */

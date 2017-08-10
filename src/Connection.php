@@ -303,11 +303,11 @@ class Connection
      * 返回最后插入行的ID或序列值
      * PDO::lastInsertId
      * @param null $sequence 序列名称
-     * @return string
+     * @return int
      */
     public function getLastInsertId($sequence = null)
     {
-        return (string)$this->getPdo()->lastInsertId($sequence);
+        return $this->getPdo()->lastInsertId($sequence);
     }
 
     /**
