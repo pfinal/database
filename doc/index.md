@@ -26,8 +26,11 @@ $userId = $db->table('user')->insertGetId($user);
 ```
 //UPDATE `user` SET `name` = 'mary' WHERE `id` = 1
 $rowCount = $db->table('user')->where('id=?', 1)->update(['name' => 'mary']);
-$rowCount = $db->table('user')->wherePk(1)->update(['name' => 'mary']);       //跟据主键更新，自动检测主键字段
 
+//跟据主键更新，自动检测主键字段
+$rowCount = $db->table('user')->wherePk(1)->update(['name' => 'mary']); 
+
+//字段自增(例如增加积分的场景)
 //UPDATE `user` SET `age` = `age` + 1, `updated_at` = '1504147628' WHERE id = 1
 $db->table('user')->where('id=?', 1)->increment('age', 1, ['updated_at' => time()]);
 ```
