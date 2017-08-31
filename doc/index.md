@@ -47,19 +47,26 @@ $rowCount = $db->table('user')->where('id=?', 1)->delete();
 $users = $db->table('user')->findAll();
 
 //跳过4条，返回2条
-$users = $db->table('user')->limit('4,2')->findAll();
+$users = $db->table('user')->limit('4, 2')->findAll();
+
+//排序
+$users = $db->table('user')->limit('4, 2')->orderBy('id desc')->findAll();
 
 //返回单条数据
-$user = $db->table('user')->where('id=?',1)->findOne();
+$user = $db->table('user')->where('id=?', 1)->findOne();
 
 //查询主键为1的单条数据
 $user = $db->table('user')->findByPk(1);
 
 //统计查询
 $count = $db->table('user')->count();
+
 $maxUserId = $db->table('user')->max('id');
+
 $minUserId= $db->table('user')->min('id');
+
 $avgAge = $db->table('user')->avg('age');
+
 $sumScore = $db->table('user')->sum('score');
 
 ```
@@ -72,6 +79,7 @@ $users = $db->table('user')->where('name=? and status=?', ['jack', '1'])->findAl
 $users = $db->table('user')->where('name=:name and status=:status', ['name' => 'jack', 'status' => '1'])->findAll();
 $users = $db->table('user')->where(['name' => 'jack', 'status' => 1])->findAll();
 $users = $db->table('user')->where(['name' => 'jack'])->where(['status' => 1])->findAll();
+//以上4种写法，是一样的效果
 
 //SELECT * FROM `user` WHERE `name` like '%j%'
 $users = $db->table('user')->where('name like ?', '%j%')->findAll();
