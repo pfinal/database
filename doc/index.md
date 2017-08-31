@@ -90,10 +90,10 @@ $users = $db->table('user')->where(['name' => 'jack'])->where(['status' => 1])->
 //SELECT * FROM `user` WHERE `name` like '%j%'
 $users = $db->table('user')->where('name like ?', '%j%')->findAll();
 
-//SELECT * FROM `user` WHERE `id` IN ('1','2','3')
+//SELECT * FROM `user` WHERE `id` IN (1, 2, 3)
 $users = $db->table('user')->whereIn('id', [1, 2, 3])->findAll();
 
-//SELECT * FROM `user` WHERE `name`='jack' OR `name` ='mary'
+//SELECT * FROM `user` WHERE `name`='jack' OR `name`='mary'
 $users = $db->table('user')->where('name=? or name =? ', ['jack', 'mary'])->findAll();
 $users = $db->table('user')->where('name=?', 'jack')->where('name=?', 'mary',false)->findAll();
 
