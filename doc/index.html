@@ -1,0 +1,115 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>pfinal/database</title>
+</head>
+<body>
+<link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+<center>
+    <h1>pfinal/database</h1>
+</center>
+<div style="padding: 20px;">
+
+    <article class="markdown-body entry-content" itemprop="text">
+        <p>实例化对象</p>
+        <pre><code>$config = array(
+    'dsn' =&gt; 'mysql:host=localhost;dbname=test',
+    'username' =&gt; 'root',
+    'password' =&gt; '',
+    'charset' =&gt; 'utf8',
+    'tablePrefix' =&gt; '',
+);
+
+$db = new \PFinal\Database\Builder($config);
+</code></pre>
+        <p>新增数据</p>
+        <pre><code>$user = ['name' =&gt; 'jack', 'email' =&gt; 'jack@gmail.com'];
+$bool = $db-&gt;table('user')-&gt;insert($user);
+$userId = $db-&gt;table('user')-&gt;insertGetId($user);
+</code></pre>
+        <p>更新数据</p>
+        <pre><code>//UPDATE `user` SET `name` = 'mary' WHERE `id` = 1
+$rowCount = $db-&gt;table('user')-&gt;where('id=?', 1)-&gt;update(['name' =&gt; 'mary']);
+
+//跟据主键更新，自动检测主键字段
+$rowCount = $db-&gt;table('user')-&gt;wherePk(1)-&gt;update(['name' =&gt; 'mary']);
+
+//字段自增(例如增加积分的场景)
+//UPDATE `user` SET `age` = `age` + 1, `updated_at` = '1504147628' WHERE id = 1
+$db-&gt;table('user')-&gt;where('id=?', 1)-&gt;increment('age', 1, ['updated_at' =&gt; time()]);
+</code></pre>
+        <p>删除数据</p>
+        <pre><code>$rowCount = $db-&gt;table('user')-&gt;where('id=?', 1)-&gt;delete();
+</code></pre>
+        <p>查询数据</p>
+        <pre><code>//查询user表所有数据
+$users = $db-&gt;table('user')-&gt;findAll();
+
+//跳过4条，返回2条
+$users = $db-&gt;table('user')-&gt;limit('4, 2')-&gt;findAll();
+
+//排序
+$users = $db-&gt;table('user')-&gt;where('status=?', 1)-&gt;limit('4, 2')-&gt;orderBy('id desc')-&gt;findAll();
+
+//返回单条数据
+$user = $db-&gt;table('user')-&gt;where('id=?', 1)-&gt;findOne();
+
+//查询主键为1的单条数据
+$user = $db-&gt;table('user')-&gt;findByPk(1);
+
+//统计查询
+$count = $db-&gt;table('user')-&gt;count();
+
+$maxUserId = $db-&gt;table('user')-&gt;max('id');
+
+$minUserId= $db-&gt;table('user')-&gt;min('id');
+
+$avgAge = $db-&gt;table('user')-&gt;avg('age');
+
+$sumScore = $db-&gt;table('user')-&gt;sum('score');
+
+// 返回数据的方法，必须在最后面调用，且一次链式调用中只能用一个，例如：findAll findOne findByPk count max min avg sum 等方法
+// where 方法支持多次调用，默认用and连接
+// where、whereIn、wherePk、limit、orderBy 这几个方法调用顺序无关
+
+</code></pre>
+        <p>查询条件</p>
+        <pre><code>//SELECT * FROM `user` WHERE `name`='jack' AND `status`='1'
+$users = $db-&gt;table('user')-&gt;where('name=? and status=?', ['jack', '1'])-&gt;findAll();
+$users = $db-&gt;table('user')-&gt;where('name=:name and status=:status', ['name' =&gt; 'jack', 'status' =&gt; '1'])-&gt;findAll();
+$users = $db-&gt;table('user')-&gt;where(['name' =&gt; 'jack', 'status' =&gt; 1])-&gt;findAll();
+$users = $db-&gt;table('user')-&gt;where(['name' =&gt; 'jack'])-&gt;where(['status' =&gt; 1])-&gt;findAll();
+//以上4种写法，是一样的效果
+
+//SELECT * FROM `user` WHERE `name` like '%j%'
+$users = $db-&gt;table('user')-&gt;where('name like ?', '%j%')-&gt;findAll();
+
+//SELECT * FROM `user` WHERE `id` IN ('1','2','3')
+$users = $db-&gt;table('user')-&gt;whereIn('id', [1, 2, 3])-&gt;findAll();
+
+//SELECT * FROM `user` WHERE `name`='jack' OR `name` ='mary'
+$users = $db-&gt;table('user')-&gt;where('name=? or name =? ', ['jack', 'mary'])-&gt;findAll();
+$users = $db-&gt;table('user')-&gt;where('name=?', 'jack')-&gt;where('name=?', 'mary',false)-&gt;findAll();
+
+</code></pre>
+        <p>事务</p>
+        <pre><code>$db-&gt;getConnection()-&gt;beginTransaction();    //开启事务
+$db-&gt;getConnection()-&gt;commit();              //提交事务
+$db-&gt;getConnection()-&gt;rollBack();            //回滚事务
+</code></pre>
+        <p>调试SQL</p>
+        <pre><code>$db-&gt;getConnection()-&gt;enableQueryLog();
+// your code ...
+$sql = $db-&gt;getConnection()-&gt;getQueryLog();
+var_dump($sql);
+
+</code></pre>
+    </article>
+
+</div>
+</body>
+</html>
