@@ -32,12 +32,16 @@ PHP交流 QQ 群：`16455997`
     echo $id;
     
   ```
+
+[更多用法请点击这里](doc/index.md)
+  
+  
 如果你的项目未使用Composer,请使用下面的方式做类自动加载
 
 ```php
 <?php
 
-    include "./src/ClassLoader.php";
+    include "./database/src/ClassLoader.php";
     
     $loader = new \PFinal\Database\ClassLoader();
     $loader->register();
