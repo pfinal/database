@@ -7,7 +7,7 @@ $config = array(
     'username' => 'root',
     'password' => '',
     'charset' => 'utf8',
-    'tablePrefix' => 'db_',
+    'tablePrefix' => '',
 );
 
 $db = new \PFinal\Database\Builder($config);
@@ -19,7 +19,6 @@ $db = new \PFinal\Database\Builder($config);
 $user = ['name' => 'jack', 'email' => 'jack@gmail.com'];
 $bool = $db->table('user')->insert($user);
 $userId = $db->table('user')->insertGetId($user);
-
 ```
 
 更新数据
@@ -31,7 +30,6 @@ $rowCount = $db->table('user')->wherePk(1)->update(['name' => 'mary']);
 
 //UPDATE `user` SET `age` = `age` + 1, `updated_at` = '1504147628' WHERE id = 1
 $db->table('user')->where('id=?', 1)->increment('age', 1, ['updated_at' => time()]);
-
 ```
 
 删除数据
@@ -50,7 +48,7 @@ $users = $db->table('user')->findAll();
 $users = $db->table('user')->limit('4, 2')->findAll();
 
 //排序
-$users = $db->table('user')->limit('4, 2')->orderBy('id desc')->findAll();
+$users = $db->table('user')->where('status=?', 1)->limit('4, 2')->orderBy('id desc')->findAll();
 
 //返回单条数据
 $user = $db->table('user')->where('id=?', 1)->findOne();
@@ -69,9 +67,13 @@ $avgAge = $db->table('user')->avg('age');
 
 $sumScore = $db->table('user')->sum('score');
 
+// 返回数据的方法，必须在最后面调用，且一次链式调用中只能用一个，例如：findAll findOne findByPk count max min avg sum 等方法
+// where 方法支持多次调用，默认用and连接
+// where、whereIn、wherePk、limit、orderBy 这几个方法调用顺序无关
+
 ```
 
-更多Where条件用法
+查询条件
 
 ```
 //SELECT * FROM `user` WHERE `name`='jack' AND `status`='1'
