@@ -203,6 +203,46 @@ class Builder
     }
 
     /**
+     * 拆分查询，用于处理非常多的查询结果,而不会消耗大量内存，建议加上排序字段
+     *
+     * @param int $num 每次取出的数据数量 例如 100
+     * @param callback $callback 每次取出数据时被调用,传入每次查询得到的数据(数组)
+     *
+     * 可以通过从闭包函数中返回 false 来中止组块的运行
+     *
+     * 示例
+     *
+     * DB::select('user')->where('status=1')->orderBy('id')->chunk(100, function ($users) {
+     *    foreach ($users as $user) {
+     *      // ...
+     *    }
+     * });
+     *
+     * @return boolean
+     */
+    public function chunk($num, $callback)
+    {
+        $offset = 0;
+        $limit = (int)$num;
+        do {
+            $query = clone $this;
+            $query->offset($offset);
+            $query->limit($limit);
+            $data = $query->findAll();
+            $offset += $limit;
+
+            if (count($data) > 0) {
+                if (call_user_func($callback, $data) === false) {
+                    return false;
+                }
+            }
+            unset($query);
+        } while (count($data) === $limit);
+        $this->reset();
+        return true;
+    }
+
+    /**
      * 游标迭代处理数据库记录, 执行查询并返回 Generator
      *
      * 使用示例:
