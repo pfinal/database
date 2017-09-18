@@ -36,6 +36,13 @@ class Builder
     protected $lockInShareMode;
     protected $useWritePdo = false;
 
+    protected $join;
+    protected $leftJoin;
+
+    protected $groupBy;
+    protected $having;
+
+
     /**
      * 自动生成查询绑定参数前缀
      */
@@ -194,7 +201,10 @@ class Builder
         $this->where($condition, $params);
 
         $sql = 'SELECT ' . static::getFieldString() . ' FROM ' . $this->table
+            . $this->getJoinString()
             . $this->getWhereString()
+            . $this->getGroupByString()
+            . $this->getHavingByString()
             . $this->getOrderByString()
             . $this->getLimitString();
 
@@ -579,6 +589,64 @@ class Builder
     }
 
     /**
+     * inner Join
+     *
+     * @param string $table
+     * @param string $on
+     * @return $this
+     */
+    public function join($table, $on)
+    {
+        $table = self::addPrefix($table);
+        $this->join = compact('table', 'on');
+        return $this;
+    }
+
+    /**
+     * left Join
+     *
+     * @param string $table
+     * @param string $on
+     * @return $this
+     */
+    public function leftJoin($table, $on)
+    {
+        $table = self::addPrefix($table);
+        $this->leftJoin = compact('table', 'on');
+        return $this;
+    }
+
+    /**
+     * group by
+     *
+     * @param $groupBy
+     * @return $this
+     */
+    public function groupBy($groupBy)
+    {
+        $this->groupBy = $groupBy;
+        return $this;
+    }
+
+    /**
+     * having
+     *
+     * @param string $having 占位符目前只支持冒号格式 例如 having('account_id > : account_id', ['account_id'>100])
+     * @param array $params
+     * @return $this
+     */
+    public function having($having, array $params = array())
+    {
+        //占位符目前只支持冒号格式，检测是否有问号
+        if (strpos($having, '?') !== false) {
+            throw new Exception('having cannot contain a question mark');
+        }
+
+        $this->having = compact('having', 'params');
+        return $this;
+    }
+
+    /**
      * 主键字段
      *
      * @return array 例如 ['id']
@@ -734,6 +802,58 @@ class Builder
         }
     }
 
+    /**
+     * 返回sql语句，用于调试 select 语句
+     *
+     * @return string
+     */
+    public function toSql()
+    {
+        $sql = 'SELECT ' . static::getFieldString() . ' FROM ' . $this->table
+            . $this->getJoinString()
+            . $this->getWhereString()
+            . $this->getGroupByString()
+            . $this->getHavingByString()
+            . $this->getOrderByString()
+            . $this->getLimitString();
+
+        $sql = static::replacePlaceholder($sql);
+        $conn = $this->getConnection();
+        $sql = $conn->parsePlaceholder($conn->quoteSql($sql), $this->params);
+        $this->reset();
+        return $sql;
+    }
+
+    /**
+     * group by
+     *
+     * @return string
+     */
+    protected function getGroupByString()
+    {
+        if (static::isEmpty($this->groupBy)) {
+            return '';
+        }
+        return ' GROUP BY ' . $this->groupBy;
+    }
+
+    /**
+     * having
+     *
+     * @return string
+     */
+    protected function getHavingByString()
+    {
+        if (static::isEmpty($this->having)) {
+            return '';
+        }
+
+        if (!static::isEmpty($this->having['params'])) {
+            $this->params = array_merge($this->params, $this->having['params']);
+        }
+
+        return ' HAVING ' . $this->having['having'];
+    }
 
     /**
      * 处理数组条件
@@ -787,6 +907,24 @@ class Builder
         }
 
         return $result;
+    }
+
+    /**
+     * 返回 join 语句
+     * @return string
+     */
+    protected function getJoinString()
+    {
+        $join = '';
+        if (!static::isEmpty($this->join)) {
+            $join .= ' JOIN ' . $this->join['table'] . ' ON ' . $this->join['on'];
+        }
+
+        if (!static::isEmpty($this->leftJoin)) {
+            $join .= ' LEFT JOIN ' . $this->leftJoin['table'] . ' ON ' . $this->leftJoin['on'];
+        }
+
+        return $join;
     }
 
     /**
@@ -986,5 +1124,9 @@ class Builder
         $this->lockInShareMode = null;
         $this->useWritePdo = null;
         $this->afterFind = null;
+        $this->join = null;
+        $this->leftJoin = null;
+        $this->groupBy = null;
+        $this->having = null;
     }
 }

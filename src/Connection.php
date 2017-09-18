@@ -20,9 +20,9 @@ class Connection
     protected $queryLog = array();
 
     protected $config = array(
-        'dsn' => 'mysql:host=localhost;dbname=test',
-        //'host' => 'localhost',
-        //'database' => 'test',
+        //'dsn' => 'mysql:host=localhost;dbname=test',
+        'host' => 'localhost',
+        'database' => 'test',
 
         'username' => 'root',
         'password' => '',
@@ -91,7 +91,11 @@ class Connection
 
         try {
             $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
-            $pdo->exec('SET NAMES ' . $pdo->quote($config['charset']));
+
+            if (strpos($dsn, 'mysql:') === 0) {
+                $pdo->exec('SET NAMES ' . $pdo->quote($config['charset']));
+            }
+
             return $pdo;
         } catch (PDOException $ex) {
             throw new Exception($ex->getMessage());

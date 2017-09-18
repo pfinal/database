@@ -3,7 +3,7 @@
 include "./autoload.php";
 
 $config = [
-    'dsn' => 'mysql:host=localhost;dbname=test',
+    'dsn' => 'mysql:host=127.0.0.1;dbname=test',
     'username' => 'root',
     'password' => 'root',
     'charset' => 'utf8',
@@ -14,13 +14,17 @@ $db = new \PFinal\Database\Builder($config);
 
 $db->getConnection()->enableQueryLog();
 
-$db->table('test')->where('id=?', [44])->increment('aa', 1, ['bb' => 6]);
+//$db->table('tests')->where('id=?', [44])->increment('aa', 1, ['bb' => 6]);
+//
+//$id = $db->table('tests')->insertGetId(['username' => 134, 'status' => '0']);
+//
+//$count = $db->table('tests')->lockForUpdate()->count('id');
 
-$id = $db->table('test')->insertGetId(['username' => 134, 'status' => '0']);
+//var_dump($count);
 
-$count = $db->table('test')->lockForUpdate()->count('id');
+//$res = $db->table('tests')->field('status')->groupBy('status')->having('status>:status', ['status' => 1])->findAll();
 
-var_dump($count);
+//var_dump($res);
 
 var_dump($db->getConnection()->getQueryLog());
 
