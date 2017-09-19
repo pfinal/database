@@ -87,14 +87,16 @@ class Builder
      * 如果不希望添加表前缀，例如表名为`user`, 使用`{{user}}`
      * 如果使用自定义表前缀(不使用配置中指定的表前缀), 例如表前缀为`wp_`, 使用`{{wp_user}}`
      *
-     * @param string $tableName
+     * @param string $tableName 支持 as 例如 user as u
      * @return static
      * @throws Exception
      */
     public function table($tableName = '')
     {
         if (!empty($tableName)) {
+
             $tableName = self::addPrefix($tableName);
+
         }
 
         $builder = clone $this;
@@ -111,13 +113,24 @@ class Builder
      */
     public function addPrefix($tableName)
     {
+        // user as u
+        // {{user}} as u
+        // {{%user}} as u
+        // user u
+        if (preg_match('/^(.+?)\s+(as\s+)?(\w+)$/i', $tableName, $res)) {
+            $tableName = $res[1];
+            $asName = ' AS ' . $res[3];
+        } else {
+            $asName = '';
+        }
+
         if (strpos($tableName, '{{') === false) {
             $tableName = '{{%' . $tableName . '}}';
         }
         if (!preg_match('/^\{\{%?[\w\-\.\$]+%?\}\}$/', $tableName)) {
             throw new Exception('表名错误');
         }
-        return $tableName;
+        return $tableName . $asName;
     }
 
     /**
@@ -633,7 +646,7 @@ class Builder
     /**
      * inner Join
      *
-     * @param string $table
+     * @param string $table 表名，例如 "user as u"
      * @param string $on
      * @return $this
      */
@@ -647,7 +660,7 @@ class Builder
     /**
      * left Join
      *
-     * @param string $table
+     * @param string $table 表名，例如 "user as u"
      * @param string $on
      * @return $this
      */
@@ -738,7 +751,13 @@ class Builder
         }
 
         $values = array_values($values);
-        return $this->where('[[' . $field . ']] IN (' . rtrim(str_repeat('?,', count($values)), ',') . ')', $values, $andWhere);
+
+        //如果不是类似 "user.id"，则加上转义 "`id`"，防止列名是关键字的情况
+        if (strpos($field, '.') === false) {
+            $field = '[[' . $field . ']]';
+        }
+
+        return $this->where($field . ' IN (' . rtrim(str_repeat('?,', count($values)), ',') . ')', $values, $andWhere);
     }
 
     /**
