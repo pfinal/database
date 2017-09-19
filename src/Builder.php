@@ -253,6 +253,48 @@ class Builder
     }
 
     /**
+     * chunkById
+     *
+     * @param int $num
+     * @param callable $callback
+     * @param string $column
+     * @return bool
+     *
+     * @see chunk
+     */
+    public function chunkById($num, callable $callback, $column = 'id')
+    {
+        $this->checkColumnName($column);
+
+        $lastId = 0;
+
+        do {
+            $query = clone $this;
+
+            $results = $query->where($column . ' > ?', array($lastId))
+                ->orderBy($column)
+                ->limit($num)
+                ->findAll();
+
+            $countResults = count($results);
+
+            if ($countResults == 0) {
+                break;
+            }
+
+            if ($callback($results) === false) {
+                return false;
+            }
+
+            $last = end($results);
+            $lastId = $last[$column];
+
+        } while ($countResults == $num);
+
+        return true;
+    }
+
+    /**
      * 游标迭代处理数据库记录, 执行查询并返回 Generator
      *
      * 使用示例:
