@@ -2,7 +2,7 @@
 
 实例化对象
 
-```
+```php
 $config = array(
     'dsn' => 'mysql:host=localhost;dbname=test',
     'username' => 'root',
@@ -16,7 +16,7 @@ $db = new \PFinal\Database\Builder($config);
 
 新增数据
 
-```
+```php
 $user = ['name' => 'jack', 'email' => 'jack@gmail.com'];
 $bool = $db->table('user')->insert($user);
 $userId = $db->table('user')->insertGetId($user);
@@ -24,7 +24,7 @@ $userId = $db->table('user')->insertGetId($user);
 
 更新数据
 
-```
+```php
 //UPDATE `user` SET `name` = 'mary' WHERE `id` = 1
 $rowCount = $db->table('user')->where('id=?', 1)->update(['name' => 'mary']);
 
@@ -38,13 +38,13 @@ $db->table('user')->where('id=?', 1)->increment('age', 1, ['updated_at' => time(
 
 删除数据
 
-```
+```php
 $rowCount = $db->table('user')->where('id=?', 1)->delete();
 ```
 
 查询数据
 
-```
+```php
 //查询user表所有数据
 $users = $db->table('user')->findAll();
 
@@ -82,7 +82,7 @@ $sumScore = $db->table('user')->sum('score');
 
 查询条件
 
-```
+```php
 //SELECT * FROM `user` WHERE `name`='jack' AND `status`='1'
 $users = $db->table('user')->where('name=? and status=?', ['jack', '1'])->findAll();
 $users = $db->table('user')->where('name=:name and status=:status', ['name' => 'jack', 'status' => '1'])->findAll();
@@ -104,19 +104,19 @@ $users = $db->table('user')->where('name=?', 'jack')->where('name=?', 'mary',fal
 
 Group By
 
-```
+```php
 $res = $db->table('tests')->field('status')->groupBy('status')->having('status>:status', ['status' => 1])->findAll();
 ```
 
 Join
 
-```
+```php
 $res = $db->table('user as u')->join('info as i','u.id=i.user_id')->field('u.*, i.address')->orderBy('u.id')->findAll();
 ```
 
 事务
 
-```
+```php
 $db->getConnection()->beginTransaction();    //开启事务
 $db->getConnection()->commit();              //提交事务
 $db->getConnection()->rollBack();            //回滚事务
@@ -124,7 +124,7 @@ $db->getConnection()->rollBack();            //回滚事务
 
 调试SQL
 
-```
+```php
 $sql = $db->table('user')->where(['name'=>'Jack'])->toSql();
 var_dump($sql);
 
