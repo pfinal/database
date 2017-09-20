@@ -163,7 +163,6 @@ DB::select('user')->where('status=1')->chunkById(100, function ($users) {
 
 ```
 
-
 调试SQL
 
 ```php
