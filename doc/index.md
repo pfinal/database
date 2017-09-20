@@ -54,6 +54,9 @@ $users = $db->table('user')->limit('4, 2')->findAll();
 //排序
 $users = $db->table('user')->where('status=?', 1)->limit('4, 2')->orderBy('id desc')->findAll();
 
+//MySQL随机排序
+$users = $db->table('user')->orderBy(new \PFinal\Database\Expression('rand()'))->findAll();
+
 //返回单条数据
 $user = $db->table('user')->where('id=?', 1)->findOne();
 
@@ -110,6 +113,9 @@ $db->getConnection()->rollBack();            //回滚事务
 调试SQL
 
 ```
+$sql = $db->table('user')->where(['name'=>'Jack'])->toSql();
+var_dump($sql);
+
 $db->getConnection()->enableQueryLog();
 // your code ...
 $sql = $db->getConnection()->getQueryLog();
