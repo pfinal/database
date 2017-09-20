@@ -137,7 +137,7 @@ $sql = $db->table('user')->where(['name'=>'Jack'])->toSql();
 var_dump($sql);
 
 $db->getConnection()->enableQueryLog();
-$users = $db->table('user')->findOne();
+$user = $db->table('user')->findOne();
 $sqls = $db->getConnection()->getQueryLog();
 var_dump($sqls);
 
