@@ -119,6 +119,7 @@ $res = $db->table('user as u')
     ->join('info as i','u.id=i.user_id')
     ->field('u.*, i.address')
     ->orderBy('u.id')
+    ->where('u.id>?', 10)
     ->findAll();
 ```
 
