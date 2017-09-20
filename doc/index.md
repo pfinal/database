@@ -102,6 +102,12 @@ $users = $db->table('user')->where('name=?', 'jack')->where('name=?', 'mary',fal
 
 ```
 
+Group By
+
+```
+$res = $db->table('tests')->field('status')->groupBy('status')->having('status>:status', ['status' => 1])->findAll();
+```
+
 事务
 
 ```
