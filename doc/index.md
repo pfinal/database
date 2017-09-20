@@ -76,7 +76,7 @@ $sumScore = $db->table('user')->sum('score');
 
 // 返回数据的方法，必须在最后面调用，且一次链式调用中只能用一个，例如：findAll findOne findByPk count max min avg sum 等方法。
 // where 方法支持多次调用，默认用and连接。
-// where、whereIn、wherePk、limit、orderBy、field、join、groupBy 这几个方法调用顺序无关。
+// where、whereIn、wherePk、limit、orderBy、field、join、groupBy having 这几个方法调用先后顺序无关。
 
 ```
 
