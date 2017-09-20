@@ -74,9 +74,9 @@ $avgAge = $db->table('user')->avg('age');
 
 $sumScore = $db->table('user')->sum('score');
 
-// 返回数据的方法，必须在最后面调用，且一次链式调用中只能用一个，例如：findAll findOne findByPk count max min avg sum 等方法
-// where 方法支持多次调用，默认用and连接
-// where、whereIn、wherePk、limit、orderBy 这几个方法调用顺序无关
+// 返回数据的方法，必须在最后面调用，且一次链式调用中只能用一个，例如：findAll findOne findByPk count max min avg sum 等方法。
+// where 方法支持多次调用，默认用and连接。
+// where、whereIn、wherePk、limit、orderBy、field、join、groupBy 这几个方法调用顺序无关。
 
 ```
 
@@ -105,13 +105,21 @@ $users = $db->table('user')->where('name=?', 'jack')->where('name=?', 'mary',fal
 Group By
 
 ```php
-$res = $db->table('tests')->field('status')->groupBy('status')->having('status>:status', ['status' => 1])->findAll();
+$res = $db->table('tests')
+    ->field('status')
+    ->groupBy('status')
+    ->having('status>:status', ['status' => 1])
+    ->findAll();
 ```
 
 Join
 
 ```php
-$res = $db->table('user as u')->join('info as i','u.id=i.user_id')->field('u.*, i.address')->orderBy('u.id')->findAll();
+$res = $db->table('user as u')
+    ->join('info as i','u.id=i.user_id')
+    ->field('u.*, i.address')
+    ->orderBy('u.id')
+    ->findAll();
 ```
 
 事务
@@ -129,7 +137,7 @@ $sql = $db->table('user')->where(['name'=>'Jack'])->toSql();
 var_dump($sql);
 
 $db->getConnection()->enableQueryLog();
-// your code ...
+$users = $db->table('user')->findOne();
 $sql = $db->getConnection()->getQueryLog();
 var_dump($sql);
 
