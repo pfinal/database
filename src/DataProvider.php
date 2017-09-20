@@ -2,9 +2,6 @@
 
 namespace PFinal\Database;
 
-use Leaf\Application;
-use Leaf\Pagination;
-
 /**
  * 数据提供者
  */
@@ -44,7 +41,11 @@ class DataProvider implements \JsonSerializable, \ArrayAccess, \Iterator, \Count
     {
         if ($this->page === null) {
 
-            $this->page = Application::$app->make('Leaf\\Pagination');
+            if (class_exists('Leaf\\Application') && isset(\Leaf\Application::$app)) {
+                $this->page = \Leaf\Application::$app->make('Leaf\\Pagination');
+            } else {
+                $this->page = new Pagination();
+            }
 
             $this->page->config($this->pageConfig);
 

@@ -131,6 +131,39 @@ $db->getConnection()->commit();              //提交事务
 $db->getConnection()->rollBack();            //回滚事务
 ```
 
+数据分页
+
+```php
+$dataProvider = $db->table('tests')->paginate();
+var_dump($dataProvider->getData());
+echo $dataProvider->createLinks();
+```
+
+处理大量的数据
+
+```php
+//cursor
+foreach (DB::table('user')->where('status=1')->cursor() as $user) {
+    // ...
+}
+
+//chunk
+DB::select('user')->where('status=1')->orderBy('id')->chunk(100, function ($users) {
+   foreach ($users as $user) {
+     // ...
+   }
+});
+
+//chunkById
+DB::select('user')->where('status=1')->chunkById(100, function ($users) {
+   foreach ($users as $user) {
+     // ...
+   }
+});
+
+```
+
+
 调试SQL
 
 ```php
