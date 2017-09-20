@@ -94,9 +94,7 @@ class Builder
     public function table($tableName = '')
     {
         if (!empty($tableName)) {
-
             $tableName = self::addPrefix($tableName);
-
         }
 
         $builder = clone $this;
@@ -587,6 +585,8 @@ class Builder
     /**
      * 排序
      *
+     * MySQL随机排序 orderBy(new \PFinal\Database\Expression('rand()'))
+     *
      * @param array|string $columns
      * @return $this
      */
@@ -948,6 +948,10 @@ class Builder
      */
     protected function normalizeOrderBy($columns)
     {
+        if ($columns instanceof Expression) {
+            return $columns;
+        }
+
         if (is_array($columns)) {
             return $columns;
         }
@@ -1035,9 +1039,12 @@ class Builder
         $orderBy = $this->orderBy;
         if ($orderBy !== null) {
 
-            $columns = $orderBy;
+            if ($orderBy instanceof Expression) {
+                return ' ORDER BY ' . $orderBy;
+            }
+
             $orders = array();
-            foreach ($columns as $name => $direction) {
+            foreach ($orderBy as $name => $direction) {
                 static::checkColumnName($name);
                 $orders[] = $name . ($direction === SORT_DESC ? ' DESC' : '');
             }

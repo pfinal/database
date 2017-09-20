@@ -14,8 +14,9 @@ $db = new \PFinal\Database\Builder($config);
 
 $db->getConnection()->enableQueryLog();
 
-$db->table('{{%tests}} as  t')->findOne();
+$res = $db->table('{{%tests}} as  t')->orderBy(new \PFinal\Database\Expression('rand()'))->findAll();
 
+//var_dump($res);
 //$db->table('tests')->where('id=?', [44])->increment('aa', 1, ['bb' => 6]);
 //
 //$id = $db->table('tests')->insertGetId(['username' => 134, 'status' => '0']);
