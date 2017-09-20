@@ -98,7 +98,7 @@ $users = $db->table('user')->whereIn('id', [1, 2, 3])->findAll();
 
 //SELECT * FROM `user` WHERE `name`='jack' OR `name`='mary'
 $users = $db->table('user')->where('name=? or name =? ', ['jack', 'mary'])->findAll();
-$users = $db->table('user')->where('name=?', 'jack')->where('name=?', 'mary',false)->findAll();
+$users = $db->table('user')->where('name=?', 'jack')->where('name=?', 'mary', false)->findAll();
 
 ```
 
@@ -138,7 +138,7 @@ var_dump($sql);
 
 $db->getConnection()->enableQueryLog();
 $users = $db->table('user')->findOne();
-$sql = $db->getConnection()->getQueryLog();
-var_dump($sql);
+$sqls = $db->getConnection()->getQueryLog();
+var_dump($sqls);
 
 ```
