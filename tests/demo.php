@@ -14,9 +14,6 @@ $db = new \PFinal\Database\Builder($config);
 
 $db->getConnection()->enableQueryLog();
 
-
-
-
 $res = $db->table('{{%tests}} as  t')->orderBy(new \PFinal\Database\Expression('rand()'))->findAll();
 
 //var_dump($res);

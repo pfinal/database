@@ -385,6 +385,9 @@ class Builder
      */
     public function findByPk($id, $primaryKeyField = null)
     {
+        if (empty($id)) {
+            return null;
+        }
         $this->wherePk($id, $primaryKeyField);
         $this->limit = 1;
         return $this->findOne();
