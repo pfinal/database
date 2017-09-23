@@ -849,16 +849,18 @@ class Builder
             $this->getConnection()->beginTransaction();
 
             try {
+
                 $result = $callback($this);
-
                 $this->getConnection()->commit();
+
             } catch (Exception $e) {
-                $this->getConnection()->rollBack();
 
-                throw $e;//回滚事务后继续向外抛出异常，让开发人员自行处理后续操作
-            } catch (Throwable $e) {
                 $this->getConnection()->rollBack();
+                throw $e;               //回滚事务后继续向外抛出异常，让开发人员自行处理后续操作
 
+            } catch (Throwable $e) {    //PHP 7
+
+                $this->getConnection()->rollBack();
                 throw $e;
             }
 
