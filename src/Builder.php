@@ -171,7 +171,7 @@ class Builder
      * @param string $sql
      * @param array $params
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function findAllBySql($sql = '', $params = array())
     {
@@ -196,7 +196,7 @@ class Builder
         if (array_walk($models, $this->afterFind)) {
             return $models;
         } else {
-            throw new \Exception('After find error.');
+            throw new Exception('After find error.');
         }
     }
 
@@ -1166,12 +1166,12 @@ class Builder
      *
      * @param $callback
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     public function afterFind($callback)
     {
         if (!is_callable($callback)) {
-            throw new \Exception('After find must callable');
+            throw new Exception('After find must callable');
         }
         $this->afterFind = $callback;
 
