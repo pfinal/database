@@ -263,45 +263,46 @@ class Connection
         }
     }
 
-    /**
-     * 执行 select 语句并返回 Generator
-     *
-     * @param $sql
-     * @param array $params
-     * @param array $fetchMode
-     * @param bool $useReadPdo
-     * @return \Generator
-     * @throws Exception
-     */
-    public function cursor($sql, $params = array(), $fetchMode = array(PDO::FETCH_ASSOC), $useReadPdo = true)
-    {
-        $sql = $this->quoteSql($sql);
-        try {
-
-            if ($useReadPdo) {
-                $statement = $this->getReadPdo()->prepare($sql);
-            } else {
-                $statement = $this->getPdo()->prepare($sql);
-            }
-
-            $start = microtime(true);
-            $statement->execute($params);
-            $this->logQuery($sql, $params, $this->getElapsedTime($start));
-
-            //PDOStatement::setFetchMode(int $mode)
-            //PDOStatement::setFetchMode(int $PDO::FETCH_COLUMN, int $colno)
-            //PDOStatement::setFetchMode(int $PDO::FETCH_CLASS, string $classname, array $ctorargs)
-            //PDOStatement::setFetchMode(int $PDO::FETCH_INTO, object $object)
-            call_user_func_array(array($statement, 'setFetchMode'), (array)$fetchMode);
-
-            while ($row = $statement->fetch()) {
-                yield $row;
-            }
-
-        } catch (PDOException $ex) {
-            throw new Exception($ex->getMessage());
-        }
-    }
+//    php >= 5.5
+//    /**
+//     * 执行 select 语句并返回 Generator
+//     *
+//     * @param $sql
+//     * @param array $params
+//     * @param array $fetchMode
+//     * @param bool $useReadPdo
+//     * @return \Generator
+//     * @throws Exception
+//     */
+//    public function cursor($sql, $params = array(), $fetchMode = array(PDO::FETCH_ASSOC), $useReadPdo = true)
+//    {
+//        $sql = $this->quoteSql($sql);
+//        try {
+//
+//            if ($useReadPdo) {
+//                $statement = $this->getReadPdo()->prepare($sql);
+//            } else {
+//                $statement = $this->getPdo()->prepare($sql);
+//            }
+//
+//            $start = microtime(true);
+//            $statement->execute($params);
+//            $this->logQuery($sql, $params, $this->getElapsedTime($start));
+//
+//            //PDOStatement::setFetchMode(int $mode)
+//            //PDOStatement::setFetchMode(int $PDO::FETCH_COLUMN, int $colno)
+//            //PDOStatement::setFetchMode(int $PDO::FETCH_CLASS, string $classname, array $ctorargs)
+//            //PDOStatement::setFetchMode(int $PDO::FETCH_INTO, object $object)
+//            call_user_func_array(array($statement, 'setFetchMode'), (array)$fetchMode);
+//
+//            while ($row = $statement->fetch()) {
+//                yield $row;
+//            }
+//
+//        } catch (PDOException $ex) {
+//            throw new Exception($ex->getMessage());
+//        }
+//    }
 
     /**
      * 返回最后插入行的ID或序列值
