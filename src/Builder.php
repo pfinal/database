@@ -36,8 +36,7 @@ class Builder
     protected $lockInShareMode;
     protected $useWritePdo = false;
 
-    protected $join;
-    protected $leftJoin;
+    protected $join = array();
 
     protected $groupBy;
     protected $having;
@@ -655,8 +654,9 @@ class Builder
      */
     public function join($table, $on)
     {
+        $type = 'JOIN';
         $table = self::addPrefix($table);
-        $this->join = compact('table', 'on');
+        $this->join[] = compact('type', 'table', 'on');
         return $this;
     }
 
@@ -669,8 +669,9 @@ class Builder
      */
     public function leftJoin($table, $on)
     {
+        $type = 'LEFT JOIN';
         $table = self::addPrefix($table);
-        $this->leftJoin = compact('table', 'on');
+        $this->join[] = compact('type', 'table', 'on');
         return $this;
     }
 
@@ -985,16 +986,17 @@ class Builder
      */
     protected function getJoinString()
     {
-        $join = '';
-        if (!static::isEmpty($this->join)) {
-            $join .= ' JOIN ' . $this->join['table'] . ' ON ' . $this->join['on'];
+        if (static::isEmpty($this->join)) {
+            return '';
         }
 
-        if (!static::isEmpty($this->leftJoin)) {
-            $join .= ' LEFT JOIN ' . $this->leftJoin['table'] . ' ON ' . $this->leftJoin['on'];
+        $join = array();
+
+        foreach ($this->join as $value) {
+            $join[] = $value['type'] . ' ' . $value['table'] . ' ON ' . $value['on'];
         }
 
-        return $join;
+        return join(' ', $join);
     }
 
     /**
@@ -1197,8 +1199,7 @@ class Builder
         $this->lockInShareMode = null;
         $this->useWritePdo = null;
         $this->afterFind = null;
-        $this->join = null;
-        $this->leftJoin = null;
+        $this->join = array();
         $this->groupBy = null;
         $this->having = null;
     }
