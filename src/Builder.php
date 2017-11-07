@@ -537,14 +537,17 @@ class Builder
             throw new Exception('Call to undefined method ' . __CLASS__ . '::' . $method . '()');
         }
 
-        $field = isset($arguments[0]) ? $arguments[0] : (static::isEmpty($this->field) ? '*' : $this->field);
-        $field = trim($field);
+        $field = isset($arguments[0]) ? $arguments[0] : '*';
 
-        if ($field !== '*') {
-            if (!preg_match('/^[\w\.]+$/', $field)) {
-                throw new Exception(__CLASS__ . '::' . $method . '() 第一个参数只允许字母、数字、下划线(_)、点(.) 或 星号(*)');
+        if (!($field instanceof Expression)) {
+
+            $field = trim($field);
+            if ($field !== '*') {
+                if (!preg_match('/^[\w\.]+$/', $field)) {
+                    throw new Exception(__CLASS__ . '::' . $method . '() 第一个参数只允许字母、数字、下划线(_)、点(.) 或 星号(*)');
+                }
+                $field = '[[' . $field . ']]';
             }
-            $field = '[[' . $field . ']]';
         }
 
         $method = strtoupper($method);
