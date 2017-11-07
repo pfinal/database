@@ -50,7 +50,7 @@ class DataProvider implements \JsonSerializable, \ArrayAccess, \Iterator, \Count
             $this->page->config($this->pageConfig);
 
             $countQuery = clone $this->query;
-            $this->page->itemCount = $countQuery->count();
+            $this->page->itemCount = $countQuery->count('*');
         }
 
         return $this->page;

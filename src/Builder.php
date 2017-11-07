@@ -549,7 +549,10 @@ class Builder
 
         $method = strtoupper($method);
 
-        $sql = 'SELECT ' . $method . '(' . $field . ') FROM ' . $this->table . $this->getWhereString();
+        $sql = 'SELECT ' . $method . '(' . $field . ') FROM ' . $this->table
+            . $this->getJoinString()
+            . $this->getWhereString();
+
         $sql = static::replacePlaceholder($sql);
         $sql = static::appendLock($sql);
         $result = static::getConnection()->queryScalar($sql, $this->params, !$this->useWritePdo);
@@ -996,7 +999,7 @@ class Builder
             $join[] = $value['type'] . ' ' . $value['table'] . ' ON ' . $value['on'];
         }
 
-        return join(' ', $join);
+        return ' ' . join(' ', $join);
     }
 
     /**
