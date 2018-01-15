@@ -179,6 +179,8 @@ class Builder
         $useWritePdo = $this->useWritePdo;
         $fetchClass = $this->fetchClass;
 
+        $afterFind = $this->afterFind;
+
         $this->reset();
 
         if ($fetchClass === null) {
@@ -187,16 +189,13 @@ class Builder
             $fetchModel = array(\PDO::FETCH_CLASS, $fetchClass);
         }
 
-        if ($this->afterFind === null) {
-            return static::getConnection()->query($sql, $params, $fetchModel, !$useWritePdo);
+        $data = static::getConnection()->query($sql, $params, $fetchModel, !$useWritePdo);
+
+        if ($afterFind !== null) {
+            call_user_func_array($afterFind, array($data));
         }
 
-        $models = static::getConnection()->query($sql, $params, $fetchModel, !$useWritePdo);
-        if (array_walk($models, $this->afterFind)) {
-            return $models;
-        } else {
-            throw new Exception('After find error.');
-        }
+        return $data;
     }
 
     /**
