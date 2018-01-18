@@ -3,7 +3,6 @@
 namespace PFinal\Database;
 
 use Closure;
-use Throwable;
 
 /**
  * 数据库操作辅助类
@@ -88,7 +87,6 @@ class Builder
      *
      * @param string $tableName 支持 as 例如 user as u
      * @return static
-     * @throws Exception
      */
     public function table($tableName = '')
     {
@@ -125,7 +123,7 @@ class Builder
             $tableName = '{{%' . $tableName . '}}';
         }
         if (!preg_match('/^\{\{%?[\w\-\.\$]+%?\}\}$/', $tableName)) {
-            throw new Exception('表名错误');
+            throw new Exception('表名含有不被允许的字符');
         }
         return $tableName . $asName;
     }
@@ -170,7 +168,6 @@ class Builder
      * @param string $sql
      * @param array $params
      * @return array
-     * @throws Exception
      */
     public function findAllBySql($sql = '', $params = array())
     {
@@ -401,7 +398,7 @@ class Builder
     {
         $data = static::findByPk($id, $primaryKeyField);
         if ($data == null) {
-            throw new NotFoundException();
+            throw new NotFoundException("Data not found: #" . $id);
         }
         return $data;
     }
@@ -846,7 +843,7 @@ class Builder
      * @param  int $attempts 事务会重试的次数。如果重试结束还没有成功执行，将会抛出一个异常
      * @return mixed
      *
-     * @throws \Exception|\Throwable
+     * @throws \Throwable
      */
     public function transaction(Closure $callback, $attempts = 1)
     {
@@ -859,12 +856,12 @@ class Builder
                 $result = $callback($this);
                 $this->getConnection()->commit();
 
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
 
                 $this->getConnection()->rollBack();
                 throw $e;               //回滚事务后继续向外抛出异常，让开发人员自行处理后续操作
 
-            } catch (Throwable $e) {    //PHP 7
+            } catch (\Throwable $e) {    //PHP 7
 
                 $this->getConnection()->rollBack();
                 throw $e;
@@ -1035,7 +1032,7 @@ class Builder
                 $return = $field;
             }
             if (!preg_match('/^[\w\s\.\,\[\]`\*]+$/', $return)) {
-                throw new Exception(__CLASS__ . '::field() 含有不安全的字符');//字母、数字、下划线、空白、点、星号、逗号、中括号、反引号
+                throw new Exception('字段名含有不被允许的字符');//字母、数字、下划线、空白、点、星号、逗号、中括号、反引号
             }
         }
         return $return;
@@ -1091,7 +1088,7 @@ class Builder
                 return ' LIMIT ' . $offset . ', ' . $limit;
             }
         }
-        throw  new Exception("offset or limit 包含非法字符");
+        throw new Exception("offset 或 limit 含有不被允许的字符");
     }
 
     /**
@@ -1120,7 +1117,7 @@ class Builder
     protected static function checkColumnName($column)
     {
         if (!preg_match('/^[\w\-\.]+$/', $column)) {
-            throw new Exception('列名只允许字母、数字、下划线、点(.)、中杠(-)');
+            throw new Exception('列名含有不被允许的字符');//只允许字母、数字、下划线、点(.)、中杠(-)
         }
     }
 
@@ -1180,7 +1177,7 @@ class Builder
     public function afterFind($callback)
     {
         if (!is_callable($callback)) {
-            throw new Exception('After find must callable');
+            throw new Exception('$callback is not a callable');
         }
         $this->afterFind = $callback;
 

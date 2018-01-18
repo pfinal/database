@@ -2,9 +2,9 @@
 
 namespace PFinal\Database;
 
-class Exception extends \RuntimeException
+class Exception extends \LogicException
 {
-    public function __construct($message = "Unknown database exception", $code = 0, $previous = null)
+    public function __construct($message, $code = 0, $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
