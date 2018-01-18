@@ -862,12 +862,12 @@ class Builder
             $this->getConnection()->commit();
             return $result;
 
-        } catch (\Exception $ex) {
+        } catch (\Exception $ex) {  //PHP 5.x
 
             $this->getConnection()->rollBack();
             throw $ex;               //回滚事务后继续向外抛出异常，让开发人员自行处理后续操作
 
-        } catch (\Throwable $ex) {    //PHP 7
+        } catch (\Throwable $ex) {  //PHP 7
 
             $this->getConnection()->rollBack();
             throw $ex;
