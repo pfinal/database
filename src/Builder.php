@@ -371,6 +371,15 @@ class Builder
         return $arr[0];
     }
 
+    public function findOneOrFail($condition = '', $params = array())
+    {
+        $data = static::findOne($condition, $params);
+        if ($data == null) {
+            throw new NotFoundException('Data not found');
+        }
+        return $data;
+    }
+
     /**
      * 根据主键查询, 没有结果时返回null
      *
@@ -398,7 +407,7 @@ class Builder
     {
         $data = static::findByPk($id, $primaryKeyField);
         if ($data == null) {
-            throw new NotFoundException("Data not found: #" . $id);
+            throw new NotFoundException('Data not found: #' . $id);
         }
         return $data;
     }
