@@ -375,7 +375,7 @@ class Builder
     {
         $data = static::findOne($condition, $params);
         if ($data == null) {
-            throw new NotFoundException('Data not found');
+            throw new NotFoundException('Data not found.');
         }
         return $data;
     }
