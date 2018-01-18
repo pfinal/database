@@ -849,34 +849,28 @@ class Builder
      * 如果捕获到任何异常, 将自动回滚事务后，继续抛出异常
      *
      * @param  \Closure $callback
-     * @param  int $attempts 事务会重试的次数。如果重试结束还没有成功执行，将会抛出一个异常
      * @return mixed
      *
      * @throws \Throwable
      */
-    public function transaction(Closure $callback, $attempts = 1)
+    public function transaction(Closure $callback)
     {
-        for ($i = 1; $i <= $attempts; $i++) {
+        try {
 
             $this->getConnection()->beginTransaction();
-
-            try {
-
-                $result = $callback($this);
-                $this->getConnection()->commit();
-
-            } catch (\Exception $e) {
-
-                $this->getConnection()->rollBack();
-                throw $e;               //回滚事务后继续向外抛出异常，让开发人员自行处理后续操作
-
-            } catch (\Throwable $e) {    //PHP 7
-
-                $this->getConnection()->rollBack();
-                throw $e;
-            }
-
+            $result = $callback($this);
+            $this->getConnection()->commit();
             return $result;
+
+        } catch (\Exception $ex) {
+
+            $this->getConnection()->rollBack();
+            throw $ex;               //回滚事务后继续向外抛出异常，让开发人员自行处理后续操作
+
+        } catch (\Throwable $ex) {    //PHP 7
+
+            $this->getConnection()->rollBack();
+            throw $ex;
         }
     }
 
