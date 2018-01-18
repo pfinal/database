@@ -2,7 +2,7 @@
 
 namespace PFinal\Database;
 
-class Exception extends \LogicException
+class Exception extends \RuntimeException
 {
     public function __construct($message = "Database Exception", $code = 0, $previous = null)
     {
