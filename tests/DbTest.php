@@ -5,20 +5,20 @@ class DbTest extends \PHPUnit_Framework_TestCase
 {
     private function getConn()
     {
-        $config = [
-            'dsn' => 'mysql:host=localhost;dbname=test',
+        $config = array(
+            'dsn' => 'mysql:host=127.0.0.1;dbname=test',
             'username' => 'root',
             'password' => 'root',
             'charset' => 'utf8',
             'tablePrefix' => 'db_',
-            'slave' => [
-                [
-                    'dsn' => 'mysql:host=localhost;dbname=test',
+            'slave' => array(
+                array(
+                    'dsn' => 'mysql:host=127.0.0.1;dbname=test',
                     'username' => 'root',
                     'password' => 'root',
-                ]
-            ],
-        ];
+                )
+            ),
+        );
 
         return new \PFinal\Database\Connection($config);
     }
@@ -76,7 +76,7 @@ class DbTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($rowCount == 1);
 
         $id = $db->table('{{db_test}}')->insertGetId(['username' => 'bbb', 'status' => 10]);
-        $this->assertTrue($id == 5);
+        $this->assertTrue($id >0);
 
         $arr = $db->findAllBySql('SELECT * FROM {{%test}} WHERE status=? LIMIT 2', [10]);
         $this->assertTrue(count($arr) == 2);
@@ -132,7 +132,7 @@ class DbTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($arr->status == 10);
 
 
-        var_dump($db->getConnection()->getQueryLog());
+        //dump($db->getConnection()->getQueryLog());
     }
 
 }

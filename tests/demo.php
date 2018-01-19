@@ -2,13 +2,13 @@
 
 include "./autoload.php";
 
-$config = [
+$config = array(
     'dsn' => 'mysql:host=127.0.0.1;dbname=test',
     'username' => 'root',
     'password' => 'root',
     'charset' => 'utf8',
     'tablePrefix' => '',
-];
+);
 
 $db = new \PFinal\Database\Builder($config);
 
@@ -29,7 +29,7 @@ $res = $db->table('{{%tests}} as  t')->orderBy(new \PFinal\Database\Expression('
 
 //var_dump($res);
 
-var_dump($db->getConnection()->getQueryLog());
+dump($db->getConnection()->getQueryLog());
 
 
 

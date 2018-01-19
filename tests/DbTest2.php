@@ -5,13 +5,13 @@ class DbTest2 extends \PHPUnit_Framework_TestCase
 {
     private function getConn()
     {
-        $config = [
-            'dsn' => 'mysql:host=localhost;dbname=test',
+        $config = array(
+            'dsn' => 'mysql:host=127.0.0.1;dbname=test',
             'username' => 'root',
             'password' => 'root',
             'charset' => 'utf8',
             'tablePrefix' => 'db_',
-        ];
+        );
 
         return new \PFinal\Database\Connection($config);
     }
@@ -62,7 +62,7 @@ class DbTest2 extends \PHPUnit_Framework_TestCase
         $this->assertTrue($user['username'] === 'Summer');
 
 
-        var_dump($db->getConnection()->getQueryLog());
+        //dump($db->getConnection()->getQueryLog());
     }
 
 
