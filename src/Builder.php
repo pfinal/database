@@ -8,10 +8,10 @@ use Closure;
  * 数据库操作辅助类
  *
  * @method int count($field = '*')
- * @method string sum($field)
+ * @method mixed sum($field)
  * @method mixed max($field)
  * @method mixed min($field)
- * @method string avg($field)
+ * @method mixed avg($field)
  *
  * @author  Zou Yiliang
  * @since   1.0
@@ -371,6 +371,11 @@ class Builder
         return $arr[0];
     }
 
+    /**
+     * @param string $condition
+     * @param array $params
+     * @return mixed
+     */
     public function findOneOrFail($condition = '', $params = array())
     {
         $data = static::findOne($condition, $params);
@@ -400,8 +405,11 @@ class Builder
     /**
      * 根据主键查询，没有记录时，抛出异常
      *
-     * @see findByPk
+     * @param int|array $id
+     * @param string|array $primaryKeyField
+     * @return mixed
      * @throws NotFoundException
+     * @see findByPk
      */
     public function findByPkOrFail($id, $primaryKeyField = null)
     {
@@ -424,7 +432,7 @@ class Builder
     {
         $this->where($condition, $params);
 
-        $updatePlaceholders = [];
+        $updatePlaceholders = array();
         foreach ($data as $name => $value) {
             static::checkColumnName($name);
             $updatePlaceholders[] = "[[$name]]" . ' = ' . self::PARAM_PREFIX . $name;
@@ -451,7 +459,7 @@ class Builder
     {
         static::checkColumnName($field);
 
-        $updatePlaceholders = [];
+        $updatePlaceholders = array();
         foreach ($data as $name => $val) {
             static::checkColumnName($name);
             $updatePlaceholders[] = "[[$name]]" . ' = ' . self::PARAM_PREFIX . $name;
@@ -534,7 +542,6 @@ class Builder
      * @param $method
      * @param $arguments
      * @return mixed
-     * @throws Exception
      */
     public function __call($method, $arguments)
     {
@@ -725,7 +732,7 @@ class Builder
     {
         $fields = static::schema();
 
-        $primary = [];
+        $primary = array();
         foreach ($fields as $field) {
             if ($field['Key'] === 'PRI') {
                 $primary[] = $field['Field'];
