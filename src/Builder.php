@@ -630,10 +630,16 @@ class Builder
             return $this;
         }
 
-        $params = (array)$params; //防止传入单个值时未使用数组类型
-
         if (is_array($condition)) {
             return $this->whereWithArray($condition, true, $andWhere);
+        }
+
+        if (is_object($params) && method_exists($params, '__toString')) {
+            $params = $params->__toString();
+        }
+
+        if (!is_array($params)) {
+            $params = array($params); //防止传入单个值时未使用数组类型
         }
 
         if (empty($this->condition)) {
