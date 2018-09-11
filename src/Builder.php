@@ -1036,6 +1036,11 @@ class Builder
     protected function getFieldString()
     {
         $field = $this->field;
+
+        if ($field instanceof Expression) {
+            return $field;
+        }
+
         $return = '*';
         if (!static::isEmpty($field)) {
             if (is_array($field)) {
