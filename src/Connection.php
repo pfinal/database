@@ -350,6 +350,11 @@ class Connection
         }
     }
 
+    public function getTransactions()
+    {
+        return $this->transactions;
+    }
+
     /**
      * 断开数据库链接
      */
