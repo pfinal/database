@@ -35,7 +35,14 @@ class HasMany extends Builder
 
         foreach ($relationData as $v) {
             $id = $v[$this->foreignKey];
-            $models[$id][$name][] = $v;
+
+            //PHP 7.1.16
+            //ErrorException Indirect modification of overloaded element of XXX has no effect
+            //$models[$id][$name][] = $v;
+
+            $temp = $models[$id][$name];
+            $temp[] = $v;
+            $models[$id][$name] = $temp;
         }
     }
 }
