@@ -145,6 +145,8 @@ trait ModelTrait
     /**
      * 渴求式加载
      *
+     * eg. Blog::with('category')->where()->findAll()
+     *
      * @param  string|array $relations 关联名称
      */
     public static function with($relations)
@@ -154,8 +156,8 @@ trait ModelTrait
         return DB::table(static::tableName())->asEntity(static::className())->afterFind(function ($models) use ($relations) {
             if (count($models) > 0) {
                 foreach ($relations as $relation) {
-                    $relation = call_user_func([$models[0], $relation]);
-                    $relation->appendData($models, $relation);
+                    $relationObj = call_user_func([$models[0], $relation]);
+                    $relationObj->appendData($models, $relation);
                 }
             }
         });
