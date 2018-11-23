@@ -3,9 +3,8 @@
 namespace PFinal\Database\Relations;
 
 use Leaf\Util;
-use PFinal\Database\Builder;
 
-class BelongsTo extends Builder
+class BelongsTo extends RelationBase
 {
     public $foreignKey = null;
     public $ownerKey;
@@ -18,13 +17,27 @@ class BelongsTo extends Builder
         return $this->findOne();
     }
 
-    public function appendData($models, $name)
+    public function appendData(array $models, $name, $relations = [])
     {
+        if (count($models) == 0) {
+            return;
+        }
+
+        $relations = (array)$relations;
+
+        if (isset($models[0]->$name) && count($relations) > 0) {
+            self::appendRelationData(array_column($models, $name), $relations);
+            return;
+        }
+
         $ids = Util::arrayColumn($models, $this->foreignKey);
         $ids = array_unique($ids);
 
         $this->whereIn($this->ownerKey, $ids);
         $relationData = $this->findAll();
+        if (count($relations) > 0) {
+            $this->appendRelationData($relationData, $relations);
+        }
 
         $relationData = Util::arrayColumn($relationData, null, $this->ownerKey);
 

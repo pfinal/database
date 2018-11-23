@@ -6,6 +6,7 @@ use PFinal\Database\Relations\BelongsTo;
 use PFinal\Database\Relations\HasMany;
 use PFinal\Database\Relations\HasOne;
 use Leaf\DB;
+use PFinal\Database\Relations\RelationBase;
 
 /**
  * 模型
@@ -145,7 +146,9 @@ trait ModelTrait
     /**
      * 渴求式加载
      *
-     * eg. Blog::with('category')->where()->findAll()
+     * eg:
+     * Blog::with('category')->findAll()
+     * Favorite::with('project.city', 'project.user')->findAll()
      *
      * @param  string|array $relations 关联名称
      */
@@ -154,14 +157,10 @@ trait ModelTrait
         $relations = is_string($relations) ? func_get_args() : $relations;
 
         return DB::table(static::tableName())->asEntity(static::className())->afterFind(function ($models) use ($relations) {
-            if (count($models) > 0) {
-                foreach ($relations as $relation) {
-                    $relationObj = call_user_func([$models[0], $relation]);
-                    $relationObj->appendData($models, $relation);
-                }
-            }
+            RelationBase::appendRelationData($models, $relations);
         });
     }
+
 
     public function __get($getter)
     {

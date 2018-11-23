@@ -3,9 +3,8 @@
 namespace PFinal\Database\Relations;
 
 use Leaf\Util;
-use PFinal\Database\Builder;
 
-class HasOne extends Builder
+class HasOne extends RelationBase
 {
     public $foreignKey = null;
     public $localKey;
@@ -18,14 +17,28 @@ class HasOne extends Builder
         return $this->findOne();
     }
 
-    public function appendData($models, $name)
+    public function appendData(array $models, $name, $relations = [])
     {
+        if (count($models) == 0) {
+            return;
+        }
+
+        $relations = (array)$relations;
+
+        if (isset($models[0]->$name) && count($relations) > 0) {
+            self::appendRelationData(array_column($models, $name), $relations);
+            return;
+        }
+
         $ids = Util::arrayColumn($models, $this->localKey);
         $ids = array_unique($ids);
 
         $this->whereIn($this->foreignKey, $ids);
 
         $relationData = $this->findAll();
+        if (count($relations) > 0) {
+            $this->appendRelationData($relationData, $relations);
+        }
 
         $relationData = Util::arrayColumn($relationData, null, $this->foreignKey);
 
