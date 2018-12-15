@@ -1220,7 +1220,7 @@ class Builder
         $this->params = array();
         $this->lockForUpdate = null;
         $this->lockInShareMode = null;
-        $this->useWritePdo = null;
+        $this->useWritePdo = false;
         $this->afterFind = null;
         $this->join = array();
         $this->groupBy = null;
