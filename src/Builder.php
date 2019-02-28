@@ -24,6 +24,7 @@ class Builder
     private $db;
 
     protected $table;
+    protected $tableAs;
     protected $field;
     protected $orderBy;
     protected $limit;
@@ -88,14 +89,23 @@ class Builder
      * @param string $tableName 支持 as 例如 user as u
      * @return static
      */
-    public function table($tableName = '')
+    public function table($tableName = '', $asName = null)
     {
-        if (!empty($tableName)) {
-            $tableName = self::addPrefix($tableName);
+        if ($asName === null) {
+            // 兼容as部份写在tableName中
+            // user as u
+            // {{user}} as u
+            // {{%user}} as u
+            // user u
+            if (preg_match('/^(.+?)\s+(as\s+)?(\w+)$/i', $tableName, $res)) {
+                $tableName = $res[1];
+                $asName = $res[3];
+            }
         }
 
         $builder = clone $this;
-        $builder->table = $tableName;
+        $builder->table = self::addPrefix($tableName);
+        $builder->tableAs = $this->addTableQuote($asName);
         return $builder;
     }
 
@@ -108,24 +118,31 @@ class Builder
      */
     public function addPrefix($tableName)
     {
-        // user as u
-        // {{user}} as u
-        // {{%user}} as u
-        // user u
-        if (preg_match('/^(.+?)\s+(as\s+)?(\w+)$/i', $tableName, $res)) {
-            $tableName = $res[1];
-            $asName = ' AS ' . $res[3];
-        } else {
-            $asName = '';
+        if (empty($tableName)) {
+            return $tableName;
+        }
+        if (strpos($tableName, '{{') === false) {
+            return $this->addTableQuote('%' . $tableName);
+        }
+
+        return $tableName;
+    }
+
+    private function addTableQuote($tableName)
+    {
+        if (empty($tableName)) {
+            return $tableName;
         }
 
         if (strpos($tableName, '{{') === false) {
-            $tableName = '{{%' . $tableName . '}}';
+            return '{{' . $tableName . '}}';
         }
+
         if (!preg_match('/^\{\{%?[\w\-\.\$]+%?\}\}$/', $tableName)) {
-            throw new Exception('表名含有不被允许的字符');
+            throw new Exception('表名含有不被允许的字符: ' . $tableName);
         }
-        return $tableName . $asName;
+
+        return $tableName;
     }
 
     /**
@@ -206,7 +223,7 @@ class Builder
     {
         $this->where($condition, $params);
 
-        $sql = 'SELECT ' . static::getFieldString() . ' FROM ' . $this->table
+        $sql = 'SELECT ' . static::getFieldString() . ' FROM ' . $this->table . $this->getTableAs()
             . $this->getJoinString()
             . $this->getWhereString()
             . $this->getGroupByString()
@@ -216,6 +233,15 @@ class Builder
 
         $sql = static::replacePlaceholder($sql);
         return static::findAllBySql($sql, $this->params);
+    }
+
+    private function getTableAs()
+    {
+        if (empty($this->tableAs)) {
+            return '';
+        }
+
+        return ' AS ' . $this->tableAs;
     }
 
     /**
@@ -564,7 +590,7 @@ class Builder
 
         $method = strtoupper($method);
 
-        $sql = 'SELECT ' . $method . '(' . $field . ') FROM ' . $this->table
+        $sql = 'SELECT ' . $method . '(' . $field . ') FROM ' . $this->table . $this->getTableAs()
             . $this->getJoinString()
             . $this->getWhereString();
 
@@ -894,7 +920,7 @@ class Builder
      */
     public function toSql()
     {
-        $sql = 'SELECT ' . static::getFieldString() . ' FROM ' . $this->table
+        $sql = 'SELECT ' . static::getFieldString() . ' FROM ' . $this->table . $this->getTableAs()
             . $this->getJoinString()
             . $this->getWhereString()
             . $this->getGroupByString()
@@ -1211,6 +1237,7 @@ class Builder
     protected function reset()
     {
         $this->table = null;
+        $this->tableAs = null;
         $this->fetchClass = null;
         $this->orderBy = null;
         $this->field = null;

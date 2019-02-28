@@ -23,8 +23,17 @@ use PFinal\Database\Relations\RelationBase;
  * @method static DataProvider paginate($pageSize = null)
  * @method static int count($field = '*')
  * @method static Builder useWritePdo()
+ * @method static Builder limit($limit)
+ * @method static Builder offset($offset)
  * @method static Builder orderBy($columns)
+ * @method static Builder having($having, array $params = array())
+ * @method static Builder field($field)
+ * @method static Builder lockForUpdate()
+ * @method static Builder lockInShareMode()
+ * @method static Builder join($table, $on)
+ * @method static Builder leftJoin($table, $on)
  * @method static boolean chunk($num, $callback)
+ * @method static boolean chunkById($num, callable $callback, $column = 'id')
  *
  * @method static bool insert(array $data);
  * @method static int insertGetId(array $data);
@@ -43,7 +52,9 @@ trait ModelTrait
 
     public static function __callStatic($name, $arguments)
     {
-        return call_user_func_array([DB::table(static::tableName())->asEntity(static::className()), $name], $arguments);
+        return call_user_func_array(
+            [DB::table(static::tableName(), self::getTableName(get_called_class()))->asEntity(static::className()), $name],
+            $arguments);
     }
 
     public function loadDefaultValues()
@@ -156,7 +167,7 @@ trait ModelTrait
     {
         $relations = is_string($relations) ? func_get_args() : $relations;
 
-        return DB::table(static::tableName())->asEntity(static::className())->afterFind(function ($models) use ($relations) {
+        return DB::table(static::tableName(), self::getTableName(get_called_class()))->asEntity(static::className())->afterFind(function ($models) use ($relations) {
             RelationBase::appendRelationData($models, $relations);
         });
     }
