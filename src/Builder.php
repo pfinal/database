@@ -704,8 +704,16 @@ class Builder
      */
     public function join($table, $on)
     {
+        $asName = '';
+        if (preg_match('/^(.+?)\s+(as\s+)?(\w+)$/i', $table, $res)) {
+            $table = $res[1];
+            $asName = $res[3];
+            $asName = ' AS ' . self::addTableQuote($asName);
+        }
+
         $type = 'JOIN';
-        $table = self::addPrefix($table);
+
+        $table = self::addPrefix($table) . $asName;
         $this->join[] = compact('type', 'table', 'on');
         return $this;
     }
@@ -719,8 +727,15 @@ class Builder
      */
     public function leftJoin($table, $on)
     {
+        $asName = '';
+        if (preg_match('/^(.+?)\s+(as\s+)?(\w+)$/i', $table, $res)) {
+            $table = $res[1];
+            $asName = $res[3];
+            $asName = ' AS ' . self::addTableQuote($asName);
+        }
+
         $type = 'LEFT JOIN';
-        $table = self::addPrefix($table);
+        $table = self::addPrefix($table) . $asName;
         $this->join[] = compact('type', 'table', 'on');
         return $this;
     }
