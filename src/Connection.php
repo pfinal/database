@@ -33,6 +33,7 @@ class Connection
             PDO::ATTR_STRINGIFY_FETCHES => false,   //禁止提取的时候将数值转换为字符串
             PDO::ATTR_EMULATE_PREPARES => false,    //禁止模拟预处理语句
             PDO::ATTR_CASE => PDO::CASE_NATURAL,
+            PDO::ATTR_TIMEOUT => 3,
         ),
         'slave' => array(/*
             array(
