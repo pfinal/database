@@ -634,6 +634,8 @@ class Builder
      * MySQL随机排序 orderBy(new \PFinal\Database\Expression('rand()'))
      *
      * @param array|string $columns
+     * array:  ['age' => SORT_ASC, 'id' => SORT_DESC]
+     * string: "age, id desc"
      * @return $this
      */
     public function orderBy($columns)
@@ -1017,6 +1019,7 @@ class Builder
             return $columns;
         }
 
+        // ['age' => SORT_ASC, 'id' => SORT_DESC]
         if (is_array($columns)) {
             return $columns;
         }
