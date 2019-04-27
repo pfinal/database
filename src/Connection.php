@@ -26,7 +26,7 @@ class Connection
 
         'username' => 'root',
         'password' => '',
-        'charset' => 'utf8',
+        'charset' => 'utf8mb4',
         'tablePrefix' => '',
         'options' => array(
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
