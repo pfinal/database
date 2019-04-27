@@ -23,7 +23,6 @@ class Connection
         //'dsn' => 'mysql:host=localhost;dbname=test',
         'host' => 'localhost',
         'database' => 'test',
-
         'username' => 'root',
         'password' => '',
         'charset' => 'utf8mb4',
@@ -33,21 +32,28 @@ class Connection
             PDO::ATTR_STRINGIFY_FETCHES => false,   //禁止提取的时候将数值转换为字符串
             PDO::ATTR_EMULATE_PREPARES => false,    //禁止模拟预处理语句
             PDO::ATTR_CASE => PDO::CASE_NATURAL,
-            PDO::ATTR_TIMEOUT => 3,
+            PDO::ATTR_TIMEOUT => 1,                 //连接超时秒数
         ),
         'slave' => array(/*
             array(
-                'dsn' => 'mysql:host=192.168.0.2;dbname=test',
+                'host' => '192.168.0.2',
                 'username' => 'root',
                 'password' => '',
             ),
             array(
-                'dsn' => 'mysql:host=192.168.0.3;dbname=test',
+                'host' => '192.168.0.2',
                 'username' => 'root',
                 'password' => '',
             ),*/
         ),
+
+        //服务器超时并关闭连接时，是否自动重连 (常驻内存时需要开启)
+        'serverGoneAwayReconnect' => false,
     );
+
+    //连接类型
+    const CONN_TYPE_WRITE = 1; //写库
+    const CONN_TYPE_READ = 2;  //读库
 
     /**
      * Connection constructor.
@@ -59,7 +65,7 @@ class Connection
     }
 
     /**
-     * 返回用于操作主库的PDO对象 (增、删、改)
+     * 返回用于操作主库的PDO对象 (执行"增删改"SQL语句)
      * @return PDO
      */
     public function getPdo()
@@ -72,12 +78,12 @@ class Connection
         return $this->pdo;
     }
 
-    public function setPdo(\PDO $pdo)
+    public function setPdo(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
-    public function setReadPdo(\PDO $pdo)
+    public function setReadPdo(PDO $pdo)
     {
         $this->readPdo = $pdo;
     }
@@ -90,17 +96,13 @@ class Connection
             $dsn = 'mysql:host=' . $config['host'] . ';dbname=' . $config['database'];
         }
 
-        try {
-            $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
+        $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
 
-            if (strpos($dsn, 'mysql:') === 0) {
-                $pdo->exec('SET NAMES ' . $pdo->quote($config['charset']));
-            }
-
-            return $pdo;
-        } catch (PDOException $ex) {
-            throw new Exception($ex->getMessage());
+        if (strpos($dsn, 'mysql:') === 0) {
+            $pdo->exec('SET NAMES ' . $pdo->quote($config['charset']));
         }
+
+        return $pdo;
     }
 
     /**
@@ -122,7 +124,9 @@ class Connection
         }
 
         $slaveDbConfig = $this->config['slave'];
+
         shuffle($slaveDbConfig);
+
         do {
             // 取出一个打乱后的从库信息
             $config = array_shift($slaveDbConfig);
@@ -133,14 +137,14 @@ class Connection
             try {
                 $this->readPdo = $this->makePdo($config);
                 return $this->readPdo;
-            } catch (\Exception $ex) {
-                //nothing to do
+            } catch (PDOException $ex) {
+                // nothing to do
             }
 
         } while (count($slaveDbConfig) > 0);
 
-        // 使用主库
-        //return $this->readPdo = $this->getPdo();
+        // 从库不可用时使用主库
+        // return $this->readPdo = $this->getPdo();
 
         throw $ex;
     }
@@ -181,56 +185,37 @@ class Connection
      * @param string $sql 执行的SQL，可以包含问号或冒号占位符，支持{{%table_name}}格式自动替换为表前缀
      * @param array $params 参数，对应SQL中的冒号或问号占位符
      * @return int 返回受景响行数
-     * @throws Exception
      */
     public function execute($sql, $params = array())
     {
         $sql = $this->quoteSql($sql);
-        try {
-            $statement = $this->getPdo()->prepare($sql);
-            $start = microtime(true);
-            if ($statement->execute($params)) {
-                $this->logQuery($sql, $params, $this->getElapsedTime($start));
-                return $statement->rowCount();
-            }
-        } catch (PDOException $ex) {
-            throw new Exception($ex->getMessage());
-        }
+
+        $statement = $this->makeStatementAndExecute(self::CONN_TYPE_WRITE, $sql, $params);
+
+        return $statement->rowCount();
     }
 
     /**
      * 执行SQL语句，返回array (查询类型的SQL)
      * @param string $sql
      * @param array $params
-     * @param array $fetchMode 为PDOStatement::setFetchMode的参数，例如为 PDO::FETCH_ASSOC 或 [PDO::FETCH_CLASS, 'User']
+     * @param array $fetchMode 为PDOStatement::setFetchMode的参数，例如为 [PDO::FETCH_ASSOC] 或 [PDO::FETCH_CLASS, 'User']
      * @param bool $useReadPdo 是否使用从库查询
      * @return array
-     * @throws Exception
      */
     public function query($sql, $params = array(), $fetchMode = array(PDO::FETCH_ASSOC), $useReadPdo = true)
     {
         $sql = $this->quoteSql($sql);
-        try {
 
-            if ($useReadPdo) {
-                $statement = $this->getReadPdo()->prepare($sql);
-            } else {
-                $statement = $this->getPdo()->prepare($sql);
-            }
+        $statement = $this->makeStatementAndExecute($useReadPdo ? self::CONN_TYPE_READ : self::CONN_TYPE_WRITE, $sql, $params);
 
-            $start = microtime(true);
-            $statement->execute($params);
-            $this->logQuery($sql, $params, $this->getElapsedTime($start));
+        //PDOStatement::setFetchMode(int $mode)
+        //PDOStatement::setFetchMode(int $PDO::FETCH_COLUMN, int $colno)
+        //PDOStatement::setFetchMode(int $PDO::FETCH_CLASS, string $classname, array $ctorargs)
+        //PDOStatement::setFetchMode(int $PDO::FETCH_INTO, object $object)
+        call_user_func_array(array($statement, 'setFetchMode'), (array)$fetchMode);
 
-            //PDOStatement::setFetchMode(int $mode)
-            //PDOStatement::setFetchMode(int $PDO::FETCH_COLUMN, int $colno)
-            //PDOStatement::setFetchMode(int $PDO::FETCH_CLASS, string $classname, array $ctorargs)
-            //PDOStatement::setFetchMode(int $PDO::FETCH_INTO, object $object)
-            call_user_func_array(array($statement, 'setFetchMode'), (array)$fetchMode);
-            return $statement->fetchAll();
-        } catch (PDOException $ex) {
-            throw new Exception($ex->getMessage());
-        }
+        return $statement->fetchAll();
     }
 
     /**
@@ -238,34 +223,54 @@ class Connection
      * @param $sql
      * @param array $params
      * @param bool $useReadPdo 是否使用从库查询
-     * @return string|null|false 返回查询结果的第一行第一列数据
-     *
-     * AVG、MAX、MIN、SUM查询时，如果表中一条数据都没有时，将返回null
-     *
-     * 没有结果时返回false
-     *
-     * @throws Exception
+     * @return mixed 返回查询结果的第一行第一列数据, AVG、MAX、MIN、SUM查询时，如果表中一条数据都没有时，将返回null
      */
     public function queryScalar($sql, $params = array(), $useReadPdo = true)
     {
         $sql = $this->quoteSql($sql);
-        try {
-            if ($useReadPdo) {
-                $statement = $this->getReadPdo()->prepare($sql);
-            } else {
-                $statement = $this->getPdo()->prepare($sql);
-            }
-            $start = microtime(true);
-            $statement->execute($params);
-            $this->logQuery($sql, $params, $this->getElapsedTime($start));
-            return $statement->fetchColumn(0);
-        } catch (PDOException $ex) {
-            throw new Exception($ex->getMessage());
-        }
+
+        $statement = $this->makeStatementAndExecute($useReadPdo ? self::CONN_TYPE_READ : self::CONN_TYPE_WRITE, $sql, $params);
+
+        return $statement->fetchColumn(0);
     }
 
-//    php >= 5.5
+    /**
+     * @param int $connType 连接类型 self::CONN_TYPE_XXX
+     * @param string $sql
+     * @param array $params
+     * @return \PDOStatement
+     */
+    private function makeStatementAndExecute($connType, $sql, $params = array())
+    {
+        $i = 0;
+        do {
+            $i++;
+            try {
+
+                if ($connType == self::CONN_TYPE_READ) {
+                    $statement = $this->getReadPdo()->prepare($sql);
+                } else {
+                    $statement = $this->getPdo()->prepare($sql);
+                }
+                $start = microtime(true);
+                $statement->execute($params);
+                $this->logQuery($sql, $params, $this->getElapsedTime($start));
+                return $statement;
+
+            } catch (PDOException $ex) {
+
+                if ($i > 1) {
+                    throw $ex;
+                }
+
+                //如果发生特定错误，则断开连接后重试1次，否则将抛出异常对象
+                $this->resolveDisconnect($connType, $ex);
+            }
+        } while (true);
+    }
+
 //    /**
+//     * php >= 5.5
 //     * 执行 select 语句并返回 Generator
 //     *
 //     * @param $sql
@@ -273,35 +278,29 @@ class Connection
 //     * @param array $fetchMode
 //     * @param bool $useReadPdo
 //     * @return \Generator
-//     * @throws Exception
 //     */
 //    public function cursor($sql, $params = array(), $fetchMode = array(PDO::FETCH_ASSOC), $useReadPdo = true)
 //    {
 //        $sql = $this->quoteSql($sql);
-//        try {
 //
-//            if ($useReadPdo) {
-//                $statement = $this->getReadPdo()->prepare($sql);
-//            } else {
-//                $statement = $this->getPdo()->prepare($sql);
-//            }
+//        if ($useReadPdo) {
+//            $statement = $this->getReadPdo()->prepare($sql);
+//        } else {
+//            $statement = $this->getPdo()->prepare($sql);
+//        }
 //
-//            $start = microtime(true);
-//            $statement->execute($params);
-//            $this->logQuery($sql, $params, $this->getElapsedTime($start));
+//        $start = microtime(true);
+//        $statement->execute($params);
+//        $this->logQuery($sql, $params, $this->getElapsedTime($start));
 //
-//            //PDOStatement::setFetchMode(int $mode)
-//            //PDOStatement::setFetchMode(int $PDO::FETCH_COLUMN, int $colno)
-//            //PDOStatement::setFetchMode(int $PDO::FETCH_CLASS, string $classname, array $ctorargs)
-//            //PDOStatement::setFetchMode(int $PDO::FETCH_INTO, object $object)
-//            call_user_func_array(array($statement, 'setFetchMode'), (array)$fetchMode);
+//        //PDOStatement::setFetchMode(int $mode)
+//        //PDOStatement::setFetchMode(int $PDO::FETCH_COLUMN, int $colno)
+//        //PDOStatement::setFetchMode(int $PDO::FETCH_CLASS, string $classname, array $ctorargs)
+//        //PDOStatement::setFetchMode(int $PDO::FETCH_INTO, object $object)
+//        call_user_func_array(array($statement, 'setFetchMode'), (array)$fetchMode);
 //
-//            while ($row = $statement->fetch()) {
-//                yield $row;
-//            }
-//
-//        } catch (PDOException $ex) {
-//            throw new Exception($ex->getMessage());
+//        while ($row = $statement->fetch()) {
+//            yield $row;
 //        }
 //    }
 
@@ -323,7 +322,16 @@ class Connection
     {
         ++$this->transactions;
         if ($this->transactions == 1) {
-            $this->getPdo()->beginTransaction();
+
+            try {
+                $this->getPdo()->beginTransaction();
+            } catch (PDOException $ex) {
+
+                //断开连接后重试
+                $this->resolveDisconnect(self::CONN_TYPE_WRITE, $ex);
+
+                $this->getPdo()->beginTransaction();
+            }
         }
     }
 
@@ -358,11 +366,38 @@ class Connection
 
     /**
      * 断开数据库链接
+     * @param int $connType self::CONN_TYPE_XXX
      */
-    public function disconnect()
+    public function disconnect($connType = null)
     {
+        if ($connType == self::CONN_TYPE_WRITE) {
+            $this->pdo = null;
+            return;
+        }
+
+        if ($connType == self::CONN_TYPE_READ) {
+            $this->readPdo = null;
+            return;
+        }
+
         $this->pdo = null;
         $this->readPdo = null;
+    }
+
+    /**
+     * 特定情况下断开连接
+     * @param int $connType CONN_TYPE_XXX
+     * @param PDOException $ex
+     */
+    private function resolveDisconnect($connType, PDOException $ex)
+    {
+        // https://dev.mysql.com/doc/refman/5.7/en/gone-away.html
+        if ($this->config['serverGoneAwayReconnect'] && in_array($ex->errorInfo[1], array(2006, 2013))) {
+            $this->disconnect($connType);
+            return;
+        }
+
+        throw $ex;
     }
 
     /**
@@ -514,7 +549,7 @@ class Connection
     /**
      * 计算所使用的时间
      *
-     * @param  int $start
+     * @param int $start
      * @return float
      */
     protected function getElapsedTime($start)
