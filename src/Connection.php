@@ -31,7 +31,7 @@ class Connection
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_STRINGIFY_FETCHES => false,   //禁止提取的时候将数值转换为字符串
             PDO::ATTR_EMULATE_PREPARES => false,    //禁止模拟预处理语句
-            PDO::ATTR_CASE => PDO::CASE_NATURAL,
+            PDO::ATTR_CASE => PDO::CASE_NATURAL,    //列名原样返回，不做大小写转换
             PDO::ATTR_TIMEOUT => 1,                 //连接超时秒数
         ),
         'slave' => array(/*
@@ -47,8 +47,9 @@ class Connection
             ),*/
         ),
 
-        //服务器超时并关闭连接时，是否自动重连 (常驻内存时需要开启)
-        'serverGoneAwayReconnect' => false,
+        //服务器超时并关闭连接时，是否自动重连 (常驻内存时按需开启)
+        //MySQL server has gone away
+        'reconnect' => false,
     );
 
     //连接类型
@@ -86,23 +87,6 @@ class Connection
     public function setReadPdo(PDO $pdo)
     {
         $this->readPdo = $pdo;
-    }
-
-    protected function makePdo(array $config)
-    {
-        if (isset($config['dsn'])) {
-            $dsn = $config['dsn'];
-        } else {
-            $dsn = 'mysql:host=' . $config['host'] . ';dbname=' . $config['database'];
-        }
-
-        $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
-
-        if (strpos($dsn, 'mysql:') === 0) {
-            $pdo->exec('SET NAMES ' . $pdo->quote($config['charset']));
-        }
-
-        return $pdo;
     }
 
     /**
@@ -144,9 +128,26 @@ class Connection
         } while (count($slaveDbConfig) > 0);
 
         // 从库不可用时使用主库
-        // return $this->readPdo = $this->getPdo();
+        // return $this->getPdo();
 
         throw $ex;
+    }
+
+    protected function makePdo(array $config)
+    {
+        if (isset($config['dsn'])) {
+            $dsn = $config['dsn'];
+        } else {
+            $dsn = 'mysql:host=' . $config['host'] . ';dbname=' . $config['database'];
+        }
+
+        $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
+
+        if (strpos($dsn, 'mysql:') === 0) {
+            $pdo->exec('SET NAMES ' . $pdo->quote($config['charset']));
+        }
+
+        return $pdo;
     }
 
     /**
@@ -248,11 +249,20 @@ class Connection
             try {
 
                 if ($connType == self::CONN_TYPE_READ) {
-                    $statement = $this->getReadPdo()->prepare($sql);
+                    $pdo = $this->getReadPdo();
                 } else {
-                    $statement = $this->getPdo()->prepare($sql);
+                    $pdo = $this->getPdo();
                 }
+
+                //已连接上的服务器如果超时关闭连接后或者连接被手动kill，此方法并不会抛出PDOException，而是触发一条警告
+                //Warning:  PDO::prepare(): MySQL server has gone away
+                //set global wait_timeout=5 连上mysql执行一条sql后，php中sleep(10)，再执行下一条，就会报这个警告
+                $statement = @$pdo->prepare($sql);
+
                 $start = microtime(true);
+
+                //如果执行时间较长的sql，被手动kill，则会在execute时先触发一条警告
+                //Warning PDOStatement::execute(): MySQL server has gone away
                 $statement->execute($params);
                 $this->logQuery($sql, $params, $this->getElapsedTime($start));
                 return $statement;
@@ -284,9 +294,11 @@ class Connection
 //        $sql = $this->quoteSql($sql);
 //
 //        if ($useReadPdo) {
-//            $statement = $this->getReadPdo()->prepare($sql);
+//            $pdo = $this->getReadPdo();
+//            $statement = @$pdo->prepare($sql);
 //        } else {
-//            $statement = $this->getPdo()->prepare($sql);
+//            $pdo = $this->getPdo();
+//            $statement = @$pdo->prepare($sql);
 //        }
 //
 //        $start = microtime(true);
@@ -376,6 +388,12 @@ class Connection
         }
 
         if ($connType == self::CONN_TYPE_READ) {
+
+            //没有配置读库，只使用了主库
+            if (!is_array($this->config['slave']) || count($this->config['slave']) == 0) {
+                $this->pdo = null;
+            }
+
             $this->readPdo = null;
             return;
         }
@@ -392,7 +410,10 @@ class Connection
     private function resolveDisconnect($connType, PDOException $ex)
     {
         // https://dev.mysql.com/doc/refman/5.7/en/gone-away.html
-        if ($this->config['serverGoneAwayReconnect'] && in_array($ex->errorInfo[1], array(2006, 2013))) {
+        if ($this->config['reconnect']
+            && $this->getTransactions() == 0
+            && in_array($ex->errorInfo[1], array(2006, 2013))) {
+
             $this->disconnect($connType);
             return;
         }
@@ -401,7 +422,7 @@ class Connection
     }
 
     /**
-     * 解析SQL中的占位置("?"或":"),主要用于调试SQL
+     * 解析SQL中的占位置("?"或":") 用于调试SQL
      * @param string $sql
      * @param array $params
      * @return string
@@ -495,7 +516,7 @@ class Connection
     }
 
     /**
-     * 开启记录所有SQL, 如果不开启,默认只记录最后一次执行的SQL
+     * 开启记录所有SQL, 如果不开启, 默认只记录最后一次执行的SQL
      */
     public function enableQueryLog()
     {
@@ -526,12 +547,20 @@ class Connection
 
     /**
      * 返回执行的SQL
+     * @param bool $clear 是否清空
      * @return array
      */
-    public function getQueryLog()
+    public function getQueryLog($clear = true)
     {
-        return $this->queryLog;
+        $data = $this->queryLog;
+
+        if ($clear) {
+            $this->queryLog = array();
+        }
+
+        return $data;
     }
+
 
     /**
      * 返回最近一次执行的sql语句
@@ -547,7 +576,7 @@ class Connection
     }
 
     /**
-     * 计算所使用的时间
+     * 计算所使用的时间 毫秒
      *
      * @param int $start
      * @return float
