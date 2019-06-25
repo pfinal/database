@@ -3,7 +3,7 @@
 namespace PFinal\Database;
 
 use Closure;
-use Pimple\Psr11\Container;
+use Psr\Container\ContainerInterface;
 
 /**
  * 数据库操作辅助类
@@ -22,7 +22,7 @@ class Builder
     /** @var static */
     protected static $instance;
 
-    /** @var Container */
+    /** @var ContainerInterface */
     protected static $container;
 
     /** @var Connection 数据库连接对象 */
@@ -71,7 +71,7 @@ class Builder
     }
 
     /**
-     * @param Container $container
+     * @param ContainerInterface $container
      */
     public static function setContainer($container)
     {
