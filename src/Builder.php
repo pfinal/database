@@ -3,6 +3,7 @@
 namespace PFinal\Database;
 
 use Closure;
+use Pimple\Psr11\Container;
 
 /**
  * 数据库操作辅助类
@@ -20,6 +21,9 @@ class Builder
 {
     /** @var static */
     protected static $instance;
+
+    /** @var Container */
+    protected static $container;
 
     /** @var Connection 数据库连接对象 */
     private $db;
@@ -67,11 +71,23 @@ class Builder
     }
 
     /**
+     * @param Container $container
+     */
+    public static function setContainer($container)
+    {
+        static::$container = $container;
+    }
+
+    /**
      * @return static
      */
     public static function getInstance()
     {
-        return static::$instance;
+        if (static::$instance instanceof Builder) {
+            return static::$instance;
+        }
+
+        return static::$container->get('PFinal\Database\Builder');
     }
 
     /**
