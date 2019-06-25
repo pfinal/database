@@ -5,7 +5,7 @@ namespace PFinal\Database;
 use PFinal\Database\Relations\BelongsTo;
 use PFinal\Database\Relations\HasMany;
 use PFinal\Database\Relations\HasOne;
-use Leaf\DB;
+use PFinal\Database\Builder as DB;
 use PFinal\Database\Relations\RelationBase;
 
 /**
@@ -47,22 +47,22 @@ trait ModelTrait
      */
     public static function tableName()
     {
-        return '{{%' . self::getTableName(get_called_class()) . '}}';
+        return '{{%' . self::convertTableName(get_called_class()) . '}}';
     }
 
     public static function __callStatic($name, $arguments)
     {
         return call_user_func_array(
-            [DB::table(static::tableName(), self::getTableName(get_called_class()))->asEntity(static::className()), $name],
+            [DB::getInstance()->table(static::tableName(), self::convertTableName(get_called_class()))->asEntity(get_called_class()), $name],
             $arguments);
     }
 
     public function loadDefaultValues()
     {
-        return DB::table(static::tableName())->loadDefaultValues($this);
+        return DB::getInstance()->table(static::tableName())->loadDefaultValues($this);
     }
 
-    private static function getTableName($className)
+    private static function convertTableName($className)
     {
         //去掉namespace
         $name = rtrim(str_replace('\\', '/', $className), '/\\');
@@ -87,11 +87,11 @@ trait ModelTrait
     public function hasOne($related, $foreignKey = null, $localKey = 'id')
     {
         if ($foreignKey === null) {
-            $foreignKey = self::getTableName(get_called_class()) . '_id';
+            $foreignKey = self::convertTableName(get_called_class()) . '_id';
         }
 
         $hasOne = new HasOne();
-        $hasOne->setConnection(DB::getConnection());
+        $hasOne->setConnection(DB::getInstance()->getConnection());
 
         $obj = $hasOne->table($related::tableName())->asEntity($related);
 
@@ -113,11 +113,11 @@ trait ModelTrait
     public function belongsTo($related, $foreignKey = null, $ownerKey = 'id')
     {
         if ($foreignKey === null) {
-            $foreignKey = self::getTableName($related) . '_id';
+            $foreignKey = self::convertTableName($related) . '_id';
         }
 
         $hasOne = new BelongsTo();
-        $hasOne->setConnection(DB::getConnection());
+        $hasOne->setConnection(DB::getInstance()->getConnection());
 
         $obj = $hasOne->table($related::tableName())->asEntity($related);
 
@@ -139,11 +139,11 @@ trait ModelTrait
     public function hasMany($related, $foreignKey = null, $localKey = 'id')
     {
         if ($foreignKey === null) {
-            $foreignKey = self::getTableName(get_called_class()) . '_id';
+            $foreignKey = self::convertTableName(get_called_class()) . '_id';
         }
 
         $hasOne = new HasMany();
-        $hasOne->setConnection(DB::getConnection());
+        $hasOne->setConnection(DB::getInstance()->getConnection());
 
         $obj = $hasOne->table($related::tableName())->asEntity($related);
 
@@ -167,7 +167,7 @@ trait ModelTrait
     {
         $relations = is_string($relations) ? func_get_args() : $relations;
 
-        return DB::table(static::tableName(), self::getTableName(get_called_class()))->asEntity(static::className())->afterFind(function ($models) use ($relations) {
+        return DB::getInstance()->table(static::tableName(), self::convertTableName(get_called_class()))->asEntity(get_called_class())->afterFind(function ($models) use ($relations) {
             RelationBase::appendRelationData($models, $relations);
         });
     }

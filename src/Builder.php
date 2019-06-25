@@ -18,9 +18,10 @@ use Closure;
  */
 class Builder
 {
-    /**
-     * @var Connection 数据库连接对象
-     */
+    /** @var static */
+    protected static $instance;
+
+    /** @var Connection 数据库连接对象 */
     private $db;
 
     protected $table;
@@ -41,7 +42,6 @@ class Builder
     protected $groupBy;
     protected $having;
 
-
     /**
      * 自动生成查询绑定参数前缀
      */
@@ -55,6 +55,23 @@ class Builder
         if (count($config) > 0) {
             $this->setConnection(new Connection($config));
         }
+    }
+
+    /**
+     * @return static
+     */
+    public function setAsGlobal()
+    {
+        static::$instance = $this;
+        return $this;
+    }
+
+    /**
+     * @return static
+     */
+    public static function getInstance()
+    {
+        return static::$instance;
     }
 
     /**
