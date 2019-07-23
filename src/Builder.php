@@ -582,15 +582,18 @@ class Builder
 
     /**
      * 分页获取数据
-     *
-     * @param int $pageSize 每页数据条数
+     * @param null $pageSize 每页数据条数
+     * @param null $currentPage 当前页码，如果不指定，将自动从`$_GET['page']`获取
      * @return DataProvider
      */
-    public function paginate($pageSize = null)
+    public function paginate($pageSize = null, $currentPage = null)
     {
         $pageConfig = array();
         if ($pageSize !== null) {
             $pageConfig['pageSize'] = $pageSize;
+        }
+        if ($currentPage !== null) {
+            $pageConfig['currentPage'] = $currentPage;
         }
         return new DataProvider($this, $pageConfig);
     }
