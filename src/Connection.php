@@ -27,6 +27,7 @@ class Connection
         'password' => '',
         'charset' => 'utf8mb4',
         'tablePrefix' => '',
+        'port' => 3306,
         'options' => array(
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_STRINGIFY_FETCHES => false,   //禁止提取的时候将数值转换为字符串
@@ -138,7 +139,7 @@ class Connection
         if (isset($config['dsn'])) {
             $dsn = $config['dsn'];
         } else {
-            $dsn = 'mysql:host=' . $config['host'] . ';dbname=' . $config['database'];
+            $dsn = 'mysql:host=' . $config['host'] . ';port=' . $config['port'] . ';dbname=' . $config['database'];
         }
 
         $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
