@@ -42,7 +42,7 @@ class Connection
                 'password' => '',
             ),
             array(
-                'host' => '192.168.0.2',
+                'host' => '192.168.0.2:3307',
                 'username' => 'root',
                 'password' => '',
             ),*/
@@ -139,7 +139,7 @@ class Connection
         if (isset($config['dsn'])) {
             $dsn = $config['dsn'];
         } else {
-            $dsn = 'mysql:host=' . $config['host'] . ';port=' . $config['port'] . ';dbname=' . $config['database'];
+            $dsn = 'mysql:host=' . $config['port'] . ';port=' . $config['host'] . ';dbname=' . $config['database'];
         }
 
         $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
