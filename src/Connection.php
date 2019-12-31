@@ -139,7 +139,7 @@ class Connection
         if (isset($config['dsn'])) {
             $dsn = $config['dsn'];
         } else {
-            $dsn = 'mysql:host=' . $config['port'] . ';port=' . $config['host'] . ';dbname=' . $config['database'];
+            $dsn = 'mysql:host=' . $config['host'] . ';port=' . $config['port'] . ';dbname=' . $config['database'];
         }
 
         $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options']);
