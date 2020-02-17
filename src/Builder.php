@@ -590,7 +590,7 @@ class Builder
     {
         $pageConfig = array();
         if ($pageSize !== null) {
-            $pageConfig['pageSize'] = $pageSize;
+            $pageConfig['pageSize'] = intval($pageSize);
         }
         if ($currentPage !== null) {
             $pageConfig['currentPage'] = $currentPage;
@@ -916,8 +916,8 @@ class Builder
     }
 
     /**
-     * @see lockInShareMode
      * @return $this
+     * @see lockInShareMode
      */
     public function sharedLock()
     {
@@ -940,7 +940,7 @@ class Builder
      *
      * 如果捕获到任何异常, 将自动回滚事务后，继续抛出异常
      *
-     * @param  \Closure $callback
+     * @param \Closure $callback
      * @return mixed
      *
      * @throws \Throwable
