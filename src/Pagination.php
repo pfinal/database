@@ -219,13 +219,13 @@ class Pagination implements \JsonSerializable
     public function jsonSerialize()
     {
         return array(
-            'itemCount' => $this->itemCount,//总记录数
-            'currentPage' => $this->currentPage,//当前页码
-            'offset' => $this->offset, //数据库查询的偏移量(查询开始的记录)
-            'pageSize' => $this->pageSize,//每页显示记录数
-            'pageCount' => $this->pageCount,//总页数
-            'prevPage' => $this->prevPage,//当前的上一页码
-            'nextPage' => $this->nextPage,//当前的下一页码
+            'itemCount' => intval($this->itemCount),//总记录数
+            'currentPage' => intval($this->currentPage),//当前页码
+            'offset' => intval($this->offset), //数据库查询的偏移量(查询开始的记录)
+            'pageSize' => intval($this->pageSize),//每页显示记录数
+            'pageCount' => intval($this->pageCount),//总页数
+            'prevPage' => intval($this->prevPage),//当前的上一页码
+            'nextPage' => intval($this->nextPage),//当前的下一页码
         );
     }
 
@@ -234,7 +234,7 @@ class Pagination implements \JsonSerializable
         $this->init();
         switch ($name) {
             case 'limit':
-                return $this->offset . ', ' . $this->pageSize;
+                return intval($this->offset) . ', ' . intval($this->pageSize);
             default:
                 return $this->$name;
         }
