@@ -38,6 +38,11 @@ class Pagination implements \JsonSerializable
     protected $disabledTag = 'span';
 
     /**
+     * @var \Closure
+     */
+    public static $jsonSerializer = null;
+
+    /**
      * 生成页码超链接
      *
      * $page->createLinks('article/index')
@@ -212,12 +217,18 @@ class Pagination implements \JsonSerializable
         return $url;
     }
 
+
     /**
      * 实现JsonSerializable接口，方便转为json时自定义数据。
      * @return array
      */
     public function jsonSerialize()
     {
+        if (static::$jsonSerializer) {
+            $cb = static::$jsonSerializer;
+            return $cb($this);
+        }
+
         return array(
             'itemCount' => intval($this->itemCount),//总记录数
             'currentPage' => intval($this->currentPage),//当前页码
